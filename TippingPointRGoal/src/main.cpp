@@ -39,6 +39,7 @@ motor_group DR4B(DR4B1, DR4B2);
 
 gps GPS(PORT20); //this thing is actually so cool
 distance Distance(PORT12);
+inertial Inertia(PORT20);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -124,6 +125,7 @@ int main(){
   while(1){
     Brain.Screen.printAt(20,20, "X Position: %f", GPS.xPosition());
     Brain.Screen.printAt(20,40, "Y Position: %f", GPS.yPosition());
+    Brain.Screen.printAt(20,60, "Gyro: %f", Inertia.heading());
   }
 }
 
