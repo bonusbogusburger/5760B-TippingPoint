@@ -60,7 +60,6 @@ void strafe(int direct, int speed){
 }
 
 void auton(){ //rough draft
-
 }
 
 void driver(){
@@ -109,6 +108,8 @@ void driver(){
 int main(){
   // Initializing Robot Configuration. DO NOT REMOVE! (ok)
   vexcodeInit();
+  GPS.calibrate();
+  Inertia.calibrate();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
