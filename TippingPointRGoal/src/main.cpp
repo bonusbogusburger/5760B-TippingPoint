@@ -31,9 +31,7 @@ motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
 motor Intake(PORT10, ratio18_1,true);
-motor DR4B1(PORT1, ratio36_1);
-motor DR4B2(PORT11, ratio36_1, true);
-motor_group DR4B(DR4B1, DR4B2);
+motor Lift(PORT1, ratio36_1);
 
 gps GPS(PORT20); //this thing is actually so cool
 distance Distance(PORT12);
@@ -59,17 +57,10 @@ void strafe(int direct, int speed){
   }
 }
 
-void auton(){ //rough draft
-  DTrain.spin(fwd, 80, pct); //push goal
-  wait(3, sec);
-  DTrain.stop(coast);
-  wait(0.5, sec);
-  Intake.spin(fwd, 80, pct); //drop rings
-  wait(3, sec);
-  Intake.stop(hold);
-  DTrain.spin(reverse, 80, pct); //back tf up
-  wait(2, sec);
-  DTrain.stop(coast);
+void auton(){ // testing encoders
+  while(Lift.position(deg) < 0){
+    Lift.spin(fwd);
+  }
 }
 
 void driver(){
@@ -102,13 +93,13 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR1.pressing()){
-      DR4B.spin(fwd, 50, pct);
+      Lift.spin(fwd, 50, pct);
     }
     else if(CurDrive.ButtonR2.pressing()){
-      DR4B.spin(reverse, 50, pct);
+      Lift.spin(reverse, 50, pct);
     }
     else{
-      DR4B.stop(hold);
+      Lift.stop(hold);
     }
 
     //CurDrive.ButtonDown.pressed(ControllerSwitch);
@@ -120,6 +111,7 @@ int main(){
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
+  Lift.setPosition(-945, deg); //bot starts with lift upwards at -945 degrees
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
