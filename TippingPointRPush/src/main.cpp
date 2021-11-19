@@ -31,9 +31,7 @@ motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
 motor Intake(PORT10, ratio18_1,true);
-motor DR4B1(PORT1, ratio36_1,true);
-motor DR4B2(PORT11, ratio36_1);
-motor_group DR4B(DR4B1, DR4B2);
+motor Lift(PORT4, ratio36_1);
 
 gps GPS(PORT20); //this thing is actually so cool
 distance Distance(PORT12);
@@ -102,13 +100,13 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR1.pressing()){
-      DR4B.spin(fwd, 75, pct);
+      Lift.spin(fwd, 25, pct);
     }
     else if(CurDrive.ButtonR2.pressing()){
-      DR4B.spin(reverse, 75, pct);
+      Lift.spin(reverse, 25, pct);
     }
     else{
-      DR4B.stop(hold);
+      Lift.stop(hold);
     }
 
     //CurDrive.ButtonDown.pressed(ControllerSwitch);
@@ -123,9 +121,8 @@ int main(){
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    Brain.Screen.printAt(20,20, "X Position: %f", GPS.xPosition());
-    Brain.Screen.printAt(20,40, "Y Position: %f", GPS.yPosition());
-    Brain.Screen.printAt(20,60, "Gyro: %f", Inertia.heading());
+    Brain.Screen.printAt(20,20, "Gyro: %f", Inertia.heading());
+    Brain.Screen.printAt(20, 40, "Lift Motor Pos: %f", Lift.position(degrees));
   }
 }
 

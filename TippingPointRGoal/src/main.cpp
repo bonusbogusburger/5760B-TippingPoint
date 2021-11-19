@@ -31,7 +31,7 @@ motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
 motor Intake(PORT10, ratio18_1,true);
-motor Lift(PORT1, ratio36_1);
+motor Lift(PORT4, ratio36_1);
 
 gps GPS(PORT20); //this thing is actually so cool
 distance Distance(PORT12);
@@ -59,7 +59,10 @@ void strafe(int direct, int speed){
 
 void auton(){ // testing encoders
   while(Lift.position(deg) < 0){
-    Lift.spin(fwd);
+    Lift.spin(fwd, 50, pct);
+  }
+  while(Lift.position(deg) > -475){
+    Lift.spin(fwd, 50, pct);
   }
 }
 
@@ -93,16 +96,16 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR1.pressing()){
-      Lift.spin(fwd, 50, pct);
+      Lift.spin(fwd, 25, pct);
     }
     else if(CurDrive.ButtonR2.pressing()){
-      Lift.spin(reverse, 50, pct);
+      Lift.spin(reverse, 25, pct);
     }
     else{
       Lift.stop(hold);
     }
 
-    //CurDrive.ButtonDown.pressed(ControllerSwitch);
+    //CurDrive.ButtonA.pressed(auton);
   }
 }
 
@@ -111,13 +114,12 @@ int main(){
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
-  Lift.setPosition(-945, deg); //bot starts with lift upwards at -945 degrees
+  Lift.setPosition(-475, deg); //bot starts with lift upwards at -945 degrees
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    Brain.Screen.printAt(20,20, "X Position: %f", GPS.xPosition());
-    Brain.Screen.printAt(20,40, "Y Position: %f", GPS.yPosition());
-    Brain.Screen.printAt(20,60, "Gyro: %f", Inertia.heading());
+    Brain.Screen.printAt(20,20, "Gyro: %f", Inertia.heading());
+    Brain.Screen.printAt(20, 40, "Lift Motor Pos: %f", Lift.position(degrees));
   }
 }
 
