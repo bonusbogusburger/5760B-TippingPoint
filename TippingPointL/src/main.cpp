@@ -36,6 +36,7 @@ motor Lift(PORT4, ratio36_1);
 gps GPS(PORT20); //this thing is actually so cool
 distance Distance(PORT12);
 inertial Inertia(PORT20);
+limit Limit1(Brain.ThreeWirePort.A);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -151,4 +152,4 @@ int main(){
       CurDrive.Screen.clearLine(3);
       CurDrive.Screen.print("DRIVING");
     }
-}*/ 
+}*/
