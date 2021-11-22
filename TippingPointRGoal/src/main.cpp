@@ -58,6 +58,18 @@ void strafe(int direct, int speed){
   }
 }
 
+//moves lift. 0 = down 1 = up
+void movelift(int direct, double speed){
+  if(direct == 0){
+    Lift.spin(fwd, speed, pct);
+  }
+  else if(direct == 1){
+    while(Distance.objectDistance(mm) > 123){
+      Lift.spin(reverse, speed, pct);
+    }
+  }
+}
+
 void auton(){ // testing encoders
   while(Lift.position(deg) < 0){
     Lift.spin(fwd, 50, pct);
