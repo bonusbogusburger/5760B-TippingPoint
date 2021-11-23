@@ -63,10 +63,8 @@ void movelift(int direct, double speed){
   if(direct == 0){
     Lift.spin(fwd, speed, pct);
   }
-  else if(direct == 1){
-    while(Distance.objectDistance(mm) > 123){
-      Lift.spin(reverse, speed, pct);
-    }
+  else if(direct == 1 and Distance.objectDistance(mm) > 123){
+    Lift.spin(reverse, speed, pct);
   }
 }
 
@@ -132,7 +130,7 @@ int main(){
   Competition.autonomous(auton);
   while(1){
     Brain.Screen.printAt(20,20, "Gyro: %f", Inertia.heading());
-    Brain.Screen.printAt(20, 40, "Lift Motor Pos: %f", Lift.position(degrees));
+    Brain.Screen.printAt(20, 40, "Object Distance: %f mm", Distance.objectDistance(mm));
   }
 }
 
