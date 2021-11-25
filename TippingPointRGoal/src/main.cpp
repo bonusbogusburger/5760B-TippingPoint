@@ -17,26 +17,26 @@ using namespace vex;
 
 double x = 0;
 double y = 0;
-
+int goaldetect = 1;
 competition Competition;
 controller Controller1;
 controller Controller2;
 
-//T = top B = bottom
-motor TLeft(PORT12, ratio18_1);
-motor BLeft(PORT20, ratio18_1);
-motor TRight(PORT8, ratio18_1, true);
-motor BRight(PORT9, ratio18_1, true);
+//T = top/front B = bottom/back
+motor TLeft(PORT16, ratio18_1);
+motor BLeft(PORT20 , ratio18_1);
+motor TRight(PORT6, ratio18_1, true);
+motor BRight(PORT12, ratio18_1, true);
 motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
-motor Intake(PORT10, ratio18_1,true);
+motor Intake(PORT14, ratio18_1,true);
 motor Lift(PORT4, ratio36_1);
+motor Hook(PORT18, ratio18_1);
 
 gps GPS(PORT20); //this thing is actually so cool
-distance Distance(PORT12);
+distance Distance(PORT13);
 inertial Inertia(PORT20);
-limit Limit1(Brain.ThreeWirePort.A);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -63,18 +63,16 @@ void movelift(int direct, double speed){
   if(direct == 0){
     Lift.spin(fwd, speed, pct);
   }
-  else if(direct == 1 and Distance.objectDistance(mm) > 123){
+  else if(direct == 1 and Distance.objectDistance(mm) > 253){
     Lift.spin(reverse, speed, pct);
   }
 }
 
 void auton(){ // testing encoders
-  while(Lift.position(deg) < 0){
-    Lift.spin(fwd, 50, pct);
-  }
-  while(Lift.position(deg) > -475){
-    Lift.spin(fwd, 50, pct);
-  }
+  Hook.spinFor(reverse, 5.658, rev, false);
+  DTrain.spinFor(reverse, 4.05, rev);
+  //Hook.spinFor(fwd, 3, rev);
+  //DTrain.spinFor(fwd, 2, rev);
 }
 
 void driver(){
@@ -101,19 +99,38 @@ void driver(){
     else if(CurDrive.ButtonL2.pressing()){
       Intake.spin(reverse, 80, pct);
     }
+    else if(CurDrive.ButtonLeft.pressing()){
+      Intake.spin(fwd, 20, pct);
+    }
     else{
       Intake.stop(hold);
     }
 
     //lift
-    if(CurDrive.ButtonR1.pressing()){
-      Lift.spin(fwd, 25, pct);
+    if(CurDrive.ButtonR2.pressing()){
+      Lift.spin(fwd, 50, pct);
     }
-    else if(CurDrive.ButtonR2.pressing()){
+    else if(CurDrive.ButtonR1.pressing()){
       Lift.spin(reverse, 25, pct);
     }
     else{
       Lift.stop(hold);
+    }
+
+    //hook
+    if(CurDrive.ButtonY.pressing()){
+      Hook.spin(fwd, 100, pct);
+    }
+    else if(CurDrive.ButtonRight.pressing()){
+      Hook.spin(reverse, 100, pct);
+    }
+    else{
+      Hook.stop(hold);
+    }
+
+    //brake drivetrain motors
+    if(CurDrive.ButtonUp.pressing()){
+      DTrain.stop(hold);
     }
 
     //CurDrive.ButtonA.pressed(auton);
@@ -125,6 +142,8 @@ int main(){
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
+  Hook.setVelocity(100, pct);
+  DTrain.setVelocity(60, pct);
   Lift.setPosition(-475, deg); //bot starts with lift upwards at -945 degrees
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);

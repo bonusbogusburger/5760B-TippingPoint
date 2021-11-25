@@ -22,21 +22,21 @@ competition Competition;
 controller Controller1;
 controller Controller2;
 
-//T = top B = bottom
-motor TLeft(PORT12, ratio18_1);
-motor BLeft(PORT20, ratio18_1);
-motor TRight(PORT8, ratio18_1, true);
-motor BRight(PORT9, ratio18_1, true);
+//T = top/front B = bottom/back
+motor TLeft(PORT16, ratio18_1);
+motor BLeft(PORT20 , ratio18_1);
+motor TRight(PORT6, ratio18_1, true);
+motor BRight(PORT12, ratio18_1, true);
 motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
-motor Intake(PORT10, ratio18_1,true);
+motor Intake(PORT14, ratio18_1,true);
 motor Lift(PORT4, ratio36_1);
+motor Hook(PORT18, ratio18_1);
 
 gps GPS(PORT20); //this thing is actually so cool
-distance Distance(PORT12);
+distance Distance(PORT13);
 inertial Inertia(PORT20);
-limit Limit1(Brain.ThreeWirePort.A);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -89,25 +89,44 @@ void driver(){
 
     //intake
     if(CurDrive.ButtonL1.pressing()){
-      Intake.spin(fwd, 92.5, pct);
+      Intake.spin(fwd, 80, pct);
       t = 1;
     }
     else if(CurDrive.ButtonL2.pressing()){
-      Intake.spin(reverse, 92.5, pct);
+      Intake.spin(reverse, 80, pct);
+    }
+    else if(CurDrive.ButtonLeft.pressing()){
+      Intake.spin(fwd, 20, pct);
     }
     else{
       Intake.stop(hold);
     }
 
     //lift
-    if(CurDrive.ButtonR1.pressing()){
-      Lift.spin(fwd, 25, pct);
+    if(CurDrive.ButtonR2.pressing()){
+      Lift.spin(fwd, 50, pct);
     }
-    else if(CurDrive.ButtonR2.pressing()){
+    else if(CurDrive.ButtonR1.pressing()){
       Lift.spin(reverse, 25, pct);
     }
     else{
       Lift.stop(hold);
+    }
+
+    //hook
+    if(CurDrive.ButtonY.pressing()){
+      Hook.spin(fwd, 100, pct);
+    }
+    else if(CurDrive.ButtonRight.pressing()){
+      Hook.spin(reverse, 100, pct);
+    }
+    else{
+      Hook.stop(hold);
+    }
+
+    //brake drivetrain motors
+    if(CurDrive.ButtonUp.pressing()){
+      DTrain.stop(hold);
     }
 
     //CurDrive.ButtonDown.pressed(ControllerSwitch);
