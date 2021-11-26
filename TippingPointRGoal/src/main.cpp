@@ -34,9 +34,9 @@ motor Intake(PORT14, ratio18_1,true);
 motor Lift(PORT4, ratio36_1);
 motor Hook(PORT18, ratio18_1);
 
-gps GPS(PORT20); //this thing is actually so cool
+gps GPS(PORT7); //this thing is actually so cool
 distance Distance(PORT13);
-inertial Inertia(PORT20);
+inertial Inertia(PORT8);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -68,11 +68,19 @@ void movelift(int direct, double speed){
   }
 }
 
+//0 = reverse, 1 = fwd, rotations in rev, speed = pct
+void speedFor(directionType direct, double rotations, double speed){
+  DTrain.setVelocity(speed, pct);
+  DTrain.spinFor(direct, rotations, rev);
+}
+
 void auton(){ // testing encoders
   Hook.spinFor(reverse, 5.658, rev, false);
-  DTrain.spinFor(reverse, 4.05, rev);
-  //Hook.spinFor(fwd, 3, rev);
-  //DTrain.spinFor(fwd, 2, rev);
+  //speedFor(reverse, 0.25, 20);
+  //speedFor(reverse, 0.25, 30);
+  speedFor(reverse, 4.05, 55);
+  Hook.spinFor(fwd, 3, rev);
+  DTrain.spinFor(fwd, 2, rev);
 }
 
 void driver(){
