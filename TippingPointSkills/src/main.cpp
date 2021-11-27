@@ -17,7 +17,7 @@ using namespace vex;
 
 double x = 0;
 double y = 0;
-
+double avgdistance = 0;
 competition Competition;
 controller Controller1;
 controller Controller2;
@@ -34,9 +34,10 @@ motor Intake(PORT14, ratio18_1,true);
 motor Lift(PORT4, ratio36_1);
 motor Hook(PORT18, ratio18_1);
 
-gps GPS(PORT20); //this thing is actually so cool
-distance Distance(PORT13);
-inertial Inertia(PORT20);
+gps GPS(PORT7);
+distance DistanceL(PORT9);
+distance DistanceR(PORT19);
+inertial Inertia(PORT8);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -58,6 +59,52 @@ void strafe(int direct, int speed){
   }
 }
 
+//moves lift. 0 = down 1 = up
+void movelift(int direct, double speed){
+  if(direct == 0){
+    Lift.spin(fwd, speed, pct);
+  }
+  else if(direct == 1 and DistanceR.objectDistance(mm) > 253){
+    Lift.spin(reverse, speed, pct);
+  }
+}
+
+//spinFor but with speed to make autonomous less of a pain
+void speedFor(motor Motor, directionType direct, double rotations, double speed){
+  Motor.setVelocity(speed, pct);
+  Motor.spinFor(direct, rotations, rev);
+}
+
+void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed){
+  MotorGroup.setVelocity(speed, pct);
+  MotorGroup.spinFor(direct, rotations, rev);
+}
+
+void correctDrive(directionType direct, double speed){
+  while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
+    if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
+      Left.spin(direct, speed*0.9, pct);
+      Right.spin(direct, speed, pct);
+    }
+    else if(DistanceR.objectDistance(mm) > DistanceL.objectDistance(mm)){
+      Right.spin(direct, speed*0.9, pct);
+      Left.spin(direct, speed, pct);
+    }
+  }
+  DTrain.spin(direct, speed, pct);
+}
+
+void correctDriveGyro(directionType direct, double speed){
+  if(Inertia.heading() < 0){
+    Left.spin(direct, speed*0.9, pct);
+    Right.spin(direct, speed, pct);
+  }
+  else if(Inertia.heading() > 0){
+    Right.spin(direct, speed*0.9, pct);
+    Left.spin(direct, speed, pct);
+  }
+}
+
 void auton(){ //rough draft
 }
 
@@ -71,10 +118,16 @@ void driver(){
     else if(CurDrive.ButtonB.pressing()){
       strafe(1, 75);
     }
+
     //drivetrain (tank)
     else{
     Left.spin(fwd, CurDrive.Axis3.position(), pct);
     Right.spin(fwd, CurDrive.Axis2.position(), pct);
+    }
+
+    //brake drivetrain motors
+    if(CurDrive.ButtonUp.pressing()){
+      DTrain.stop(hold);
     }
 
     //intake
@@ -114,11 +167,6 @@ void driver(){
       Hook.stop(hold);
     }
 
-    //brake drivetrain motors
-    if(CurDrive.ButtonUp.pressing()){
-      DTrain.stop(hold);
-    }
-
     //CurDrive.ButtonDown.pressed(ControllerSwitch);
   }
 }
@@ -131,8 +179,18 @@ int main(){
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    Brain.Screen.printAt(20,20, "Gyro: %f", Inertia.heading());
-    Brain.Screen.printAt(20, 40, "Lift Motor Pos: %f", Lift.position(degrees));
+    avgdistance = (DistanceL.objectDistance(mm) + DistanceR.objectDistance(mm)) / 2;
+    Brain.Screen.printAt(20, 20, "Gyro: %f", Inertia.heading());
+    Brain.Screen.printAt(20, 40, "Left Distance: %f mm", DistanceL.objectDistance(mm));
+    Brain.Screen.printAt(20, 60, "Right Distance: %f mm", DistanceR.objectDistance(mm));
+    Brain.Screen.printAt(20, 80, "Average Distance: %f mm", avgdistance);
+    Brain.Screen.printAt(20, 100, "TLeft Temp: %f ℃", TLeft.temperature(celsius));
+    Brain.Screen.printAt(20, 120, "TRight Temp: %f ℃", TRight.temperature(celsius));
+    Brain.Screen.printAt(20, 140, "BLeft Temp: %f ℃", BLeft.temperature(celsius));
+    Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
+    Brain.Screen.printAt(20, 180, "Arm Temp: %f ℃", Lift.temperature(celsius));
+    Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
+    
   }
 }
 
