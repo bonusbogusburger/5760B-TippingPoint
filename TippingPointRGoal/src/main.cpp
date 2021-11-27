@@ -82,37 +82,51 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
 
 void correctDrive(directionType direct, double speed){
   while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
-    if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
-      Left.spin(direct, speed*0.9, pct);
-      Right.spin(direct, speed, pct);
+    if(direct == reverse){
+      if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
+        Left.spin(direct, speed*0.9, pct);
+        Right.spin(direct, speed, pct);
+      }
+      else if(DistanceR.objectDistance(mm) > DistanceL.objectDistance(mm)){
+        Right.spin(direct, speed*0.9, pct);
+        Left.spin(direct, speed, pct);
+      }
     }
-    else if(DistanceR.objectDistance(mm) > DistanceL.objectDistance(mm)){
-      Right.spin(direct, speed*0.9, pct);
-      Left.spin(direct, speed, pct);
+    if(direct == fwd){
+      if(DistanceL.objectDistance(mm) < DistanceR.objectDistance(mm)){
+        Left.spin(direct, speed*0.9, pct);
+        Right.spin(direct, speed, pct);
+      }
+      else if(DistanceR.objectDistance(mm) < DistanceL.objectDistance(mm)){
+        Right.spin(direct, speed*0.9, pct);
+        Left.spin(direct, speed, pct);
+      }
     }
   }
   DTrain.spin(direct, speed, pct);
 }
 
-void correctDriveGyro(directionType direct, double speed){
-  if(Inertia.heading() < 0){
+void correctDriveGyro(directionType direct, double speed){ //def doesn't work
+  if(Inertia.heading() < 1){
     Left.spin(direct, speed*0.9, pct);
     Right.spin(direct, speed, pct);
   }
-  else if(Inertia.heading() > 0){
+  else if(Inertia.heading() > 90){
     Right.spin(direct, speed*0.9, pct);
     Left.spin(direct, speed, pct);
   }
 }
 
+//rotations to neutral = 3.888
 void auton(){
+  BLeft.resetPosition();
   Hook.spinFor(reverse, 3.35, rev, false);
-  while(avgdistance <= 1300){
+  while(BLeft.position(rev) > -3.45){
     correctDrive(reverse, 60);
   }
   DTrain.stop(hold);
   Hook.spinFor(fwd, 3, rev);
-  while(avgdistance >= 765){
+  while(BLeft.position(rev) < -2.5){
     correctDrive(fwd, 50);
   }
   DTrain.stop(hold);
