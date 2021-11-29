@@ -119,19 +119,17 @@ void correctDriveGyro(directionType direct, double speed){ //def doesn't work
 
 //rotations to neutral = 3.888
 void auton(){
-  BLeft.resetPosition();
-  Hook.spinFor(reverse, 3.35, rev, false);
-  while(BLeft.position(rev) > -3.45){
+  DTrain.resetPosition();
+  Hook.spinFor(reverse, 3.4, rev, false);
+  while(DTrain.position(rev) > -3.4){
     correctDrive(reverse, 60);
   }
   DTrain.stop(hold);
   Hook.spinFor(fwd, 3, rev);
-  while(BLeft.position(rev) < -2.5){
-    correctDrive(fwd, 50);
-  }
-  DTrain.stop(hold);
-  speedForGroup(Left, reverse, 1, 50, false);
-  speedForGroup(Right, fwd, 1, 50);
+  strafe(0, 55);
+  wait(0.2, sec);
+  speedFor(Lift, fwd, 1.2, 100);
+  speedForGroup(DTrain, fwd, 1, 50);
 }
 
 void driver(){
