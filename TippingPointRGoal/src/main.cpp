@@ -12,7 +12,6 @@
 
 #include "vex.h"
 #include <iostream>
-
 using namespace vex;
 
 double x = 0;
@@ -119,16 +118,15 @@ void correctDriveGyro(directionType direct, double speed){ //def doesn't work
 
 //rotations to neutral = 3.888
 void auton(){
-  DTrain.resetPosition();
+  BLeft.resetPosition();
   Hook.spinFor(reverse, 3.4, rev, false);
-  while(DTrain.position(rev) > -3.4){
-    correctDrive(reverse, 60);
-  }
+  correctDrive(reverse, 60);
+  wait(2.25, sec);
   DTrain.stop(hold);
   Hook.spinFor(fwd, 3, rev);
   strafe(0, 55);
   wait(0.2, sec);
-  speedFor(Lift, fwd, 1.2, 100);
+  speedFor(Lift, fwd, 1.5, 100);
   speedForGroup(DTrain, fwd, 1, 50);
 }
 
@@ -149,7 +147,7 @@ void driver(){
     Right.spin(fwd, CurDrive.Axis2.position(), pct);
     }
 
-    //brake drivetrain motors
+    //brake drivetrain motors (seems to make all motors sticky after being held)
     if(CurDrive.ButtonUp.pressing()){
       DTrain.stop(hold);
     }
@@ -215,6 +213,7 @@ int main(){
     Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
     Brain.Screen.printAt(20, 180, "Arm Temp: %f ℃", Lift.temperature(celsius));
     Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
+    Brain.Screen.printAt(20, 220, "Hook Current: %fA", Hook.current(amp));
     
   }
 }
