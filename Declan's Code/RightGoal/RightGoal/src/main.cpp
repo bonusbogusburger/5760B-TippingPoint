@@ -107,15 +107,24 @@ void correctDrive(directionType direct, double speed){
 
 //rotations to neutral = 3.888
 void auton(){
-  speedFor(Lift, fwd, 1.35 ,50);
-  DTrain.spin(forward, 80, pct);
-  wait(1.9, sec);
+  Hook.spinFor(reverse, 3.6, rev, false);
+  DTrain.spin(reverse, 60, pct);
+  wait(2.4, sec);
   DTrain.stop(hold);
-  speedFor(Lift, reverse, 0.5, 60, false);
+  Hook.spinFor(fwd, 3, rev);
+  speedForGroup(DTrain, fwd, 2.5, 50);
+  speedForGroup(Left, reverse, 1.5, 50, false);
+  speedForGroup(Right, fwd, 1.5, 50);
+  speedForGroup(DTrain, reverse, 0.5, 60, false);
+  speedFor(Lift, fwd, 1.35 ,50);
+  DTrain.spin(fwd, 60, pct);
+  wait(1.35, sec);
+  speedForGroup(DTrain, reverse, 0.3, 20, false);
+  speedFor(Lift, reverse, 0.61, 50, false);
   wait(0.5, sec);
-  speedForGroup(DTrain, reverse, 4, 70);
-  speedFor(Lift, forward, 0.5, 60, false);
-  Intake.spin(fwd, 70, pct);
+  speedForGroup(DTrain, reverse, 1.3, 50,false);
+  wait(1.3, sec);
+  Intake.spin(fwd, 80, pct);
 }
 
 void driver(){
