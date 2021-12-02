@@ -107,25 +107,23 @@ void correctDrive(directionType direct, double speed){
 
 //rotations to neutral = 3.888
 void auton(){
-  BLeft.resetPosition();
   Hook.spinFor(reverse, 3.6, rev, false);
   DTrain.spin(reverse, 60, pct);
-  //correctDrive(reverse, 60);
   wait(2.4, sec);
   DTrain.stop(hold);
-  Hook.spinFor(fwd, 3, rev, false);
+  Hook.spinFor(fwd, 3, rev);
   speedForGroup(DTrain, fwd, 2.5, 50);
   speedForGroup(Left, reverse, 1.5, 50, false);
   speedForGroup(Right, fwd, 1.5, 50);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
-  Lift.spin(fwd, 50, pct);
-  wait(2, sec);
+  speedFor(Lift, fwd, 1.35 ,50);
   DTrain.spin(fwd, 60, pct);
-  wait(1.15, sec);
-  Lift.spin(reverse, 50, pct);
-  wait(1, sec);
+  wait(1.35, sec);
+  speedForGroup(DTrain, reverse, 0.3, 20, false);
+  speedFor(Lift, reverse, 0.61, 50, false);
+  wait(0.5, sec);
   speedForGroup(DTrain, reverse, 1.3, 50,false);
-  wait(1.75, sec);
+  wait(1.5, sec);
   Intake.spin(fwd, 80, pct);
 }
 
@@ -198,6 +196,7 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   Hook.setVelocity(100, pct);
+  Lift.resetPosition();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
@@ -210,9 +209,8 @@ int main(){
     Brain.Screen.printAt(20, 120, "TRight Temp: %f ℃", TRight.temperature(celsius));
     Brain.Screen.printAt(20, 140, "BLeft Temp: %f ℃", BLeft.temperature(celsius));
     Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
-    Brain.Screen.printAt(20, 180, "Arm Temp: %f ℃", Lift.temperature(celsius));
+    Brain.Screen.printAt(20, 180, "Lift Temp: %f ℃", Lift.temperature(celsius));
     Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
-    Brain.Screen.printAt(20, 220, "Hook Current: %fA", Hook.current(amp));
     
   }
 }
