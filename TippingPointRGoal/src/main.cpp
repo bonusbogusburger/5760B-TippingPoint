@@ -80,7 +80,7 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
 }
 
 void correctDrive(directionType direct, double speed){
-  while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
+ while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
     if(direct == reverse){
       if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
         Left.spin(direct, speed*0.9, pct);
@@ -105,29 +105,28 @@ void correctDrive(directionType direct, double speed){
   DTrain.spin(direct, speed, pct);
 }
 
-void correctDriveGyro(directionType direct, double speed){ //def doesn't work
-  if(Inertia.heading() < 1){
-    Left.spin(direct, speed*0.9, pct);
-    Right.spin(direct, speed, pct);
-  }
-  else if(Inertia.heading() > 90){
-    Right.spin(direct, speed*0.9, pct);
-    Left.spin(direct, speed, pct);
-  }
-}
-
 //rotations to neutral = 3.888
 void auton(){
   BLeft.resetPosition();
-  Hook.spinFor(reverse, 3.4, rev, false);
-  correctDrive(reverse, 60);
-  wait(2.25, sec);
+  Hook.spinFor(reverse, 3.6, rev, false);
+  DTrain.spin(reverse, 60, pct);
+  //correctDrive(reverse, 60);
+  wait(2.4, sec);
   DTrain.stop(hold);
-  Hook.spinFor(fwd, 3, rev);
-  strafe(0, 55);
-  wait(0.2, sec);
-  speedFor(Lift, fwd, 1.5, 100);
-  speedForGroup(DTrain, fwd, 1, 50);
+  Hook.spinFor(fwd, 3, rev, false);
+  speedForGroup(DTrain, fwd, 2.5, 50);
+  speedForGroup(Left, reverse, 1.5, 50, false);
+  speedForGroup(Right, fwd, 1.5, 50);
+  speedForGroup(DTrain, reverse, 0.5, 60, false);
+  Lift.spin(fwd, 50, pct);
+  wait(2, sec);
+  DTrain.spin(fwd, 60, pct);
+  wait(1.15, sec);
+  Lift.spin(reverse, 50, pct);
+  wait(1, sec);
+  speedForGroup(DTrain, reverse, 1.3, 50,false);
+  wait(1.75, sec);
+  Intake.spin(fwd, 80, pct);
 }
 
 void driver(){
@@ -147,14 +146,14 @@ void driver(){
     Right.spin(fwd, CurDrive.Axis2.position(), pct);
     }
 
-    //brake drivetrain motors (seems to make all motors sticky after being held)
+    //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
     if(CurDrive.ButtonUp.pressing()){
       DTrain.stop(hold);
     }
 
     //intake
     if(CurDrive.ButtonL1.pressing()){
-      Intake.spin(fwd, 80, pct);
+      Intake.spin(fwd, 85, pct);
       t = 1;
     }
     else if(CurDrive.ButtonL2.pressing()){
@@ -169,10 +168,10 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR2.pressing()){
-      Lift.spin(fwd, 50, pct);
+      Lift.spin(fwd, 65, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
-      Lift.spin(reverse, 25, pct);
+      Lift.spin(reverse, 50, pct);
     }
     else{
       Lift.stop(hold);
