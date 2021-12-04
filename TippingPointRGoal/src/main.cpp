@@ -109,9 +109,10 @@ void correctDrive(directionType direct, double speed){
 void auton(){
   Hook.spinFor(reverse, 3.6, rev, false);
   DTrain.spin(reverse, 80, pct);
-  wait(2.4, sec);
-  DTrain.stop(hold);
-  Hook.spinFor(fwd, 3, rev);
+  wait(1.5, sec);
+  Hook.spinFor(fwd, 3, rev, false);
+  DTrain.spin(reverse, 80, pct);
+  wait(0.3, sec);
   speedForGroup(DTrain, fwd, 2.5, 50);
   speedForGroup(Left, reverse, 1.5, 50, false);
   speedForGroup(Right, fwd, 1.5, 50);
@@ -123,8 +124,18 @@ void auton(){
   speedFor(Lift, reverse, 0.6175, 50, false);
   wait(0.5, sec);
   speedForGroup(DTrain, reverse, 1.3, 50,false);
-  wait(1.3, sec);
-  Intake.spin(fwd, 80, pct);
+  wait(1.2, sec);
+  speedForGroup(DTrain, fwd, 0.425, 25, false);
+  speedForGroup(Left, fwd, 0.7, 50, false);
+  speedForGroup(Right, reverse, 0.7, 50);
+  speedForGroup(DTrain, fwd, 1.8, 30, false);
+  while(1){
+    while(Intake.current() < 3){
+      Intake.spin(fwd, 80, pct);
+    }
+    Intake.spin(reverse, 80, pct);
+    wait(0.5, sec);
+  }
 }
 
 void driver(){
@@ -211,6 +222,7 @@ int main(){
     Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
     Brain.Screen.printAt(20, 180, "Lift Temp: %f ℃", Lift.temperature(celsius));
     Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
+    Brain.Screen.printAt(20, 200, "Intake Current: %f A", Intake.current());
     
   }
 }
