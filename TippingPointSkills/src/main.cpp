@@ -70,12 +70,12 @@ void movelift(int direct, double speed){
 }
 
 //spinFor but with speed to make autonomous less of a pain
-void speedFor(motor Motor, directionType direct, double rotations, double speed){
+void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitForCompletion=true){
   Motor.setVelocity(speed, pct);
   Motor.spinFor(direct, rotations, rev);
 }
 
-void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed){
+void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed, bool waitForCompletion=true){
   MotorGroup.setVelocity(speed, pct);
   MotorGroup.spinFor(direct, rotations, rev);
 }
@@ -105,7 +105,33 @@ void correctDriveGyro(directionType direct, double speed){
   }
 }
 
-void auton(){ //rough draft
+void auton(){
+  Hook.spinFor(reverse, 3.6, rev, false);
+  DTrain.spin(reverse, 80, pct);
+  wait(1.5, sec);
+  Hook.spinFor(fwd, 3, rev, false);
+  DTrain.spin(reverse, 80, pct);
+  wait(0.3, sec);
+  speedForGroup(DTrain, fwd, 2.5, 50);
+  speedForGroup(Left, reverse, 1.5, 50, false);
+  speedForGroup(Right, fwd, 1.5, 50);
+  speedForGroup(DTrain, reverse, 0.5, 60, false);
+  speedFor(Lift, fwd, 1.35 ,50);
+  DTrain.spin(fwd, 60, pct);
+  wait(1.35, sec);
+  speedForGroup(DTrain, reverse, 0.3, 20, false);
+  speedFor(Lift, reverse, 0.6175, 50, false);
+  wait(0.5, sec);
+  speedForGroup(DTrain, reverse, 1.3, 50,false);
+  wait(1.2, sec);
+  speedForGroup(DTrain, fwd, 0.425, 25, false);
+  speedForGroup(Left, fwd, 0.7, 50, false);
+  speedForGroup(Right, reverse, 0.7, 50);
+  speedForGroup(DTrain, fwd, 1.8, 30, false);
+  Intake.spin(fwd, 80, pct);
+  wait(4, sec);
+  DTrain.spin(reverse, 80, pct);
+  wait(5, sec);
 }
 
 void driver(){
@@ -150,7 +176,7 @@ void driver(){
       Lift.spin(fwd, 50, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
-      Lift.spin(reverse, 25, pct);
+      Lift.spin(reverse, 50, pct);
     }
     else{
       Lift.stop(hold);
@@ -176,6 +202,7 @@ int main(){
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
+  Hook.setVelocity(100, pct);
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
