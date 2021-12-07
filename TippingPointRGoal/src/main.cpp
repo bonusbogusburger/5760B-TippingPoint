@@ -162,11 +162,11 @@ void driver(){
 
     //intake
     if(CurDrive.ButtonL1.pressing()){
-      Intake.spin(fwd, 85, pct);
+      Intake.spin(fwd, 100, pct);
       t = 1;
     }
     else if(CurDrive.ButtonL2.pressing()){
-      Intake.spin(reverse, 80, pct);
+      Intake.spin(reverse, 100, pct);
     }
     else if(CurDrive.ButtonLeft.pressing()){
       Intake.spin(fwd, 20, pct);

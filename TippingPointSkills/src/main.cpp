@@ -12,7 +12,6 @@
 
 #include "vex.h"
 #include <iostream>
-
 using namespace vex;
 
 double x = 0;
@@ -70,41 +69,43 @@ void movelift(int direct, double speed){
 }
 
 //spinFor but with speed to make autonomous less of a pain
-void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitForCompletion=true){
+void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitfor=true){
   Motor.setVelocity(speed, pct);
-  Motor.spinFor(direct, rotations, rev);
+  Motor.spinFor(direct, rotations, rev, waitfor);
 }
 
-void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed, bool waitForCompletion=true){
+void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed, bool waitfor=true){
   MotorGroup.setVelocity(speed, pct);
-  MotorGroup.spinFor(direct, rotations, rev);
+  MotorGroup.spinFor(direct, rotations, rev, waitfor);
 }
 
 void correctDrive(directionType direct, double speed){
-  while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
-    if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
-      Left.spin(direct, speed*0.9, pct);
-      Right.spin(direct, speed, pct);
+ while(DistanceL.objectDistance(mm) != DistanceR.objectDistance(mm)){
+    if(direct == reverse){
+      if(DistanceL.objectDistance(mm) > DistanceR.objectDistance(mm)){
+        Left.spin(direct, speed*0.9, pct);
+        Right.spin(direct, speed, pct);
+      }
+      else if(DistanceR.objectDistance(mm) > DistanceL.objectDistance(mm)){
+        Right.spin(direct, speed*0.9, pct);
+        Left.spin(direct, speed, pct);
+      }
     }
-    else if(DistanceR.objectDistance(mm) > DistanceL.objectDistance(mm)){
-      Right.spin(direct, speed*0.9, pct);
-      Left.spin(direct, speed, pct);
+    if(direct == fwd){
+      if(DistanceL.objectDistance(mm) < DistanceR.objectDistance(mm)){
+        Left.spin(direct, speed*0.9, pct);
+        Right.spin(direct, speed, pct);
+      }
+      else if(DistanceR.objectDistance(mm) < DistanceL.objectDistance(mm)){
+        Right.spin(direct, speed*0.9, pct);
+        Left.spin(direct, speed, pct);
+      }
     }
   }
   DTrain.spin(direct, speed, pct);
 }
 
-void correctDriveGyro(directionType direct, double speed){
-  if(Inertia.heading() < 0){
-    Left.spin(direct, speed*0.9, pct);
-    Right.spin(direct, speed, pct);
-  }
-  else if(Inertia.heading() > 0){
-    Right.spin(direct, speed*0.9, pct);
-    Left.spin(direct, speed, pct);
-  }
-}
-
+//rotations to neutral = 3.888
 void auton(){
   Hook.spinFor(reverse, 3.6, rev, false);
   DTrain.spin(reverse, 80, pct);
@@ -128,10 +129,12 @@ void auton(){
   speedForGroup(Left, fwd, 0.7, 50, false);
   speedForGroup(Right, reverse, 0.7, 50);
   speedForGroup(DTrain, fwd, 1.8, 30, false);
-  Intake.spin(fwd, 80, pct);
+  Intake.spin(fwd, 85, pct);
   wait(4, sec);
+  Intake.stop(coast);
+  speedForGroup(Right, reverse, 0.085, 60);
   DTrain.spin(reverse, 80, pct);
-  wait(5, sec);
+  wait(3.25, sec);
 }
 
 void driver(){
@@ -151,18 +154,18 @@ void driver(){
     Right.spin(fwd, CurDrive.Axis2.position(), pct);
     }
 
-    //brake drivetrain motors
+    //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
     if(CurDrive.ButtonUp.pressing()){
       DTrain.stop(hold);
     }
 
     //intake
     if(CurDrive.ButtonL1.pressing()){
-      Intake.spin(fwd, 80, pct);
+      Intake.spin(fwd, 100, pct);
       t = 1;
     }
     else if(CurDrive.ButtonL2.pressing()){
-      Intake.spin(reverse, 80, pct);
+      Intake.spin(reverse, 100, pct);
     }
     else if(CurDrive.ButtonLeft.pressing()){
       Intake.spin(fwd, 20, pct);
@@ -173,7 +176,7 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR2.pressing()){
-      Lift.spin(fwd, 50, pct);
+      Lift.spin(fwd, 65, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
       Lift.spin(reverse, 50, pct);
@@ -193,7 +196,7 @@ void driver(){
       Hook.stop(hold);
     }
 
-    //CurDrive.ButtonDown.pressed(ControllerSwitch);
+    //CurDrive.ButtonA.pressed(auton);
   }
 }
 
@@ -203,6 +206,7 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   Hook.setVelocity(100, pct);
+  Lift.resetPosition();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
@@ -215,8 +219,9 @@ int main(){
     Brain.Screen.printAt(20, 120, "TRight Temp: %f ℃", TRight.temperature(celsius));
     Brain.Screen.printAt(20, 140, "BLeft Temp: %f ℃", BLeft.temperature(celsius));
     Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
-    Brain.Screen.printAt(20, 180, "Arm Temp: %f ℃", Lift.temperature(celsius));
+    Brain.Screen.printAt(20, 180, "Lift Temp: %f ℃", Lift.temperature(celsius));
     Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
+    Brain.Screen.printAt(20, 200, "Intake Current: %f A", Intake.current());
     
   }
 }
