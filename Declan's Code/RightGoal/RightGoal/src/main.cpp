@@ -22,6 +22,7 @@ controller Controller1;
 controller Controller2;
 
 //T = top/front B = bottom/back
+motor Arm(PORT7, ratio36_1);  
 motor TLeft(PORT16, ratio18_1);
 motor BLeft(PORT20 , ratio18_1);
 motor TRight(PORT6, ratio18_1, true);
@@ -113,9 +114,10 @@ void auton(){
   Hook.spinFor(fwd, 3, rev, false);
   DTrain.spin(reverse, 80, pct);
   wait(0.3, sec);
-  speedForGroup(DTrain, fwd, 2.5, 50);
-  speedForGroup(Left, reverse, 1.5, 50, false);
-  speedForGroup(Right, fwd, 1.5, 50);
+  DTrain.spin(forward, 60, pct);
+  wait(1.5, sec);
+  speedForGroup(Left, reverse, 1.58, 50, false);
+  speedForGroup(Right, fwd, 1.58, 50);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
   speedFor(Lift, fwd, 1.35 ,50);
   DTrain.spin(fwd, 60, pct);
@@ -158,6 +160,13 @@ void driver(){
     //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
     if(CurDrive.ButtonUp.pressing()){
       DTrain.stop(hold);
+      Arm.spin(reverse, 30, pct);
+    }
+    else if(CurDrive.ButtonA.pressing()){
+      Arm.spin(forward, 30, pct);
+    }
+    else {
+      Arm.stop(coast);
     }
 
     //intake

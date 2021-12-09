@@ -113,9 +113,10 @@ void auton(){
   Hook.spinFor(fwd, 3, rev, false);
   DTrain.spin(reverse, 80, pct);
   wait(0.3, sec);
-  speedForGroup(DTrain, fwd, 2.5, 50);
-  speedForGroup(Left, reverse, 1.5, 50, false);
-  speedForGroup(Right, fwd, 1.5, 50);
+  DTrain.spin(forward, 60, pct);
+  wait(1.5, sec);
+  speedForGroup(Left, reverse, 1.58, 50, false);
+  speedForGroup(Right, fwd, 1.58, 50);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
   speedFor(Lift, fwd, 1.35 ,50);
   DTrain.spin(fwd, 60, pct);

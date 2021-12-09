@@ -123,7 +123,7 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   speedForGroup(Left, reverse, 1.6, 50);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
   speedFor(Lift, fwd, 1.35 ,50);
-  DTrain.spin(fwd, 60, pct);
+  DTrain.spin(fwd, 50, pct);
   wait(1.35, sec);
   speedForGroup(DTrain, reverse, 0.3, 20, false);
   speedFor(Lift, reverse, 0.6175, 50, false);
@@ -137,6 +137,14 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   Intake.spin(fwd, 85, pct);
   wait(4, sec);
   Intake.stop(coast);
+  Hook.spinFor(fwd, 1.13 , rev);
+  wait(0.7, sec);
+  Hook.spinFor(reverse, 2.7 , rev);
+  wait(0.2, sec);
+  Hook.spinFor(fwd, 2.1 , rev);
+  wait(0.2, sec);
+  Hook.spinFor(reverse, 2.4 , rev);
+  wait(1, sec);
   speedForGroup(Right, reverse, 0.125, 60);
   DTrain.spin(reverse, 80, pct);
   wait(3.25, sec);
@@ -147,22 +155,27 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   speedForGroup(Left, reverse, 2.5 , 50, false);
   speedForGroup(Right, fwd, 2.5 , 50);
   DTrain.spin(forward, 50, pct);
-  wait(0.1, sec);
+  wait(0.25, sec);
   speedFor(Lift, forward, 0.6175, 50);
   DTrain.spin(reverse, 80, pct);
-  wait(0.6, sec);
+  wait(0.75, sec);
   strafe(0, 80);
   wait(0.5, sec);
   DTrain.spin(reverse, 50, pct);
-  wait(2.75, sec);
-  speedForGroup(DTrain, fwd, 0.15, 60, false);
-  strafe(0, 80);
-  wait(1.3, sec);
+  wait(2.4, sec);
+  DTrain.spin(forward, 60, pct);
+  wait(0.3, sec);
+  speedForGroup(Left, reverse, 0.42 , 50, false);
+  speedForGroup(Right, fwd, 0.42 , 50);
+ /* strafe(0, 80);
+  wait(1, sec);*/
   DTrain.spin(fwd, 80, pct);
-  wait(1.65, sec);
-  speedFor(Lift, reverse, 0.2, 50);
-  DTrain.spin(reverse, 80, pct);
-  wait(3, sec);
+  wait(1.85, sec);
+  speedFor(Lift, reverse, 0.3, 50);
+  speedForGroup(Left, fwd, 0.3 , 50, false);
+  speedForGroup(Right, reverse, 0.3 , 50);
+  DTrain.spin(reverse, 50, pct);
+  wait(4.5, sec);
   DTrain.stop(coast);
   }
 
