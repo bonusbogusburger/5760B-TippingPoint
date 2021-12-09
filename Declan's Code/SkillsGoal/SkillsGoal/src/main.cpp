@@ -45,14 +45,14 @@ int vCurDrive = 1;
 //mecanum wheel strafing. 0 = left 1 = right (works in both driver and auton)
 void strafe(int direct, int speed){
   if(direct == 0){
-    TLeft.spin(reverse, speed, pct);
-    BLeft.spin(fwd, speed, pct);
+    TLeft.spin(reverse, speed*0.95, pct);
+    BLeft.spin(fwd, speed*0.95, pct);
     TRight.spin(fwd, speed, pct);
     BRight.spin(reverse, speed, pct);
   }
   else if(direct == 1){
-    TLeft.spin(fwd, speed, pct);
-    BLeft.spin(reverse, speed, pct);
+    TLeft.spin(fwd, speed*0.95, pct);
+    BLeft.spin(reverse, speed*0.95, pct);
     TRight.spin(reverse, speed, pct);
     BRight.spin(fwd, speed, pct);
   }
@@ -105,17 +105,22 @@ void correctDrive(directionType direct, double speed){
   DTrain.spin(direct, speed, pct);
 }
 
+void turnBot(int ninetydegturns){
+return;
+}
+
 //rotations to neutral = 3.888
-void auton(){
+void auton(){ //this hurts to look at but it works (hopefully) so shush
   Hook.spinFor(reverse, 3.6, rev, false);
   DTrain.spin(reverse, 80, pct);
   wait(1.5, sec);
-  Hook.spinFor(fwd, 3, rev, false);
+  Hook.spinFor(fwd, 3.6 , rev, false);
   DTrain.spin(reverse, 80, pct);
   wait(0.3, sec);
-  speedForGroup(DTrain, fwd, 2.5, 50);
-  speedForGroup(Left, reverse, 1.5, 50, false);
-  speedForGroup(Right, fwd, 1.5, 50);
+  DTrain.spin(forward, 60, pct);
+  wait(1.5, sec);
+  speedForGroup(Right, fwd, 1.6, 50, false);
+  speedForGroup(Left, reverse, 1.6, 50);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
   speedFor(Lift, fwd, 1.35 ,50);
   DTrain.spin(fwd, 60, pct);
@@ -129,14 +134,37 @@ void auton(){
   speedForGroup(Left, fwd, 0.7, 50, false);
   speedForGroup(Right, reverse, 0.7, 50);
   speedForGroup(DTrain, fwd, 1.8, 30, false);
-  while(1){
-    while(Intake.current() < 3){
-      Intake.spin(fwd, 80, pct);
-    }
-    Intake.spin(reverse, 80, pct);
-    wait(0.5, sec);
+  Intake.spin(fwd, 85, pct);
+  wait(4, sec);
+  Intake.stop(coast);
+  speedForGroup(Right, reverse, 0.125, 60);
+  DTrain.spin(reverse, 80, pct);
+  wait(3.25, sec);
+  DTrain.stop(coast);
+  wait(0.25, sec);
+  DTrain.spin(forward, 50, pct);
+  wait(0.25, sec);    
+  speedForGroup(Left, reverse, 2.5 , 50, false);
+  speedForGroup(Right, fwd, 2.5 , 50);
+  DTrain.spin(forward, 50, pct);
+  wait(0.1, sec);
+  speedFor(Lift, forward, 0.6175, 50);
+  DTrain.spin(reverse, 80, pct);
+  wait(0.6, sec);
+  strafe(0, 80);
+  wait(0.5, sec);
+  DTrain.spin(reverse, 50, pct);
+  wait(2.75, sec);
+  speedForGroup(DTrain, fwd, 0.15, 60, false);
+  strafe(0, 80);
+  wait(1.3, sec);
+  DTrain.spin(fwd, 80, pct);
+  wait(1.65, sec);
+  speedFor(Lift, reverse, 0.2, 50);
+  DTrain.spin(reverse, 80, pct);
+  wait(3, sec);
+  DTrain.stop(coast);
   }
-}
 
 void driver(){
   int t = 0;
