@@ -130,7 +130,9 @@ void auton(){
   speedForGroup(DTrain, fwd, 0.425, 25, false);
   speedForGroup(Left, fwd, 0.7, 50, false);
   speedForGroup(Right, reverse, 0.7, 50);
-  speedForGroup(DTrain, fwd, 1.8, 30, false);
+  speedForGroup(DTrain, reverse, 1, 40);
+  wait(0.1, sec);
+  speedForGroup(DTrain, fwd, 3.15, 33, false);
   while(1){
     while(Intake.current() < 3){
       Intake.spin(fwd, 80, pct);
@@ -145,10 +147,10 @@ void driver(){
   while(1){
     //strafing (using 3D printed shoulder thingies)
     if(CurDrive.ButtonDown.pressing()){
-      strafe(0, 75);
+      strafe(0, 90);
     }
     else if(CurDrive.ButtonB.pressing()){
-      strafe(1, 75);
+      strafe(1, 90);
     }
 
     //drivetrain (tank)
@@ -160,13 +162,6 @@ void driver(){
     //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
     if(CurDrive.ButtonUp.pressing()){
       DTrain.stop(hold);
-      Arm.spin(reverse, 30, pct);
-    }
-    else if(CurDrive.ButtonA.pressing()){
-      Arm.spin(forward, 30, pct);
-    }
-    else {
-      Arm.stop(coast);
     }
 
     //intake

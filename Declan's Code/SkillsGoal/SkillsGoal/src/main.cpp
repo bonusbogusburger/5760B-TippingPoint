@@ -45,14 +45,14 @@ int vCurDrive = 1;
 //mecanum wheel strafing. 0 = left 1 = right (works in both driver and auton)
 void strafe(int direct, int speed){
   if(direct == 0){
-    TLeft.spin(reverse, speed*0.95, pct);
-    BLeft.spin(fwd, speed*0.95, pct);
+    TLeft.spin(reverse, speed, pct);
+    BLeft.spin(fwd, speed, pct);
     TRight.spin(fwd, speed, pct);
     BRight.spin(reverse, speed, pct);
   }
   else if(direct == 1){
-    TLeft.spin(fwd, speed*0.95, pct);
-    BLeft.spin(reverse, speed*0.95, pct);
+    TLeft.spin(fwd, speed, pct);
+    BLeft.spin(reverse, speed, pct);
     TRight.spin(reverse, speed, pct);
     BRight.spin(fwd, speed, pct);
   }
@@ -143,7 +143,7 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   wait(0.2, sec);
   Hook.spinFor(fwd, 2.1 , rev);
   wait(0.2, sec);
-  Hook.spinFor(reverse, 2.4 , rev);
+  Hook.spinFor(reverse, 4.13 , rev);
   wait(1, sec);
   speedForGroup(Right, reverse, 0.125, 60);
   DTrain.spin(reverse, 80, pct);
@@ -159,7 +159,7 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   speedFor(Lift, forward, 0.6175, 50);
   DTrain.spin(reverse, 80, pct);
   wait(0.75, sec);
-  strafe(0, 80);
+  strafe(0, 90);
   wait(0.5, sec);
   DTrain.spin(reverse, 50, pct);
   wait(2.4, sec);
@@ -171,11 +171,13 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   wait(1, sec);*/
   DTrain.spin(fwd, 80, pct);
   wait(1.85, sec);
-  speedFor(Lift, reverse, 0.3, 50);
+  speedFor(Lift, reverse, 0.6175, 50, false);
+  DTrain.spin(fwd, 80, pct);
+  wait(0.4, sec);
   speedForGroup(Left, fwd, 0.3 , 50, false);
   speedForGroup(Right, reverse, 0.3 , 50);
   DTrain.spin(reverse, 50, pct);
-  wait(4.5, sec);
+  wait(4.3, sec);
   DTrain.stop(coast);
   }
 

@@ -123,10 +123,10 @@ void driver(){
   while(1){
     //strafing (using 3D printed shoulder thingies)
     if(CurDrive.ButtonDown.pressing()){
-      strafe(0, 75);
+      strafe(0, 90);
     }
     else if(CurDrive.ButtonB.pressing()){
-      strafe(1, 75);
+      strafe(1, 90);
     }
 
     //drivetrain (tank)
