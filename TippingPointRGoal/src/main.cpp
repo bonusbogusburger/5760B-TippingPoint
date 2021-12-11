@@ -68,7 +68,7 @@ void movelift(int direct, double speed){
   }
 }
 
-//spinFor but with speed to make autonomous less of a pain
+//spinFor but with speed to make autonomous less of a pain (this might not be necessary actually????? the reason why confuses me)
 void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitfor=true){
   Motor.setVelocity(speed, pct);
   Motor.spinFor(direct, rotations, rev, waitfor);
@@ -129,14 +129,18 @@ void auton(){
   speedForGroup(DTrain, fwd, 0.425, 25, false);
   speedForGroup(Left, fwd, 0.7, 50, false);
   speedForGroup(Right, reverse, 0.7, 50);
-  speedForGroup(DTrain, fwd, 1.8, 30, false);
-  while(1){
+  Intake.spinFor(fwd, 10000, rev, false);
+  speedForGroup(DTrain, fwd, 2.3, 30);
+  wait(0.85, sec);
+  speedForGroup(DTrain, reverse, 2.3, 50);
+  speedForGroup(DTrain, fwd, 2.3, 30);
+  /*while(1){
     while(Intake.current() < 3){
       Intake.spin(fwd, 80, pct);
     }
     Intake.spin(reverse, 80, pct);
     wait(0.5, sec);
-  }
+  }*/
 }
 
 void driver(){
@@ -208,6 +212,7 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   Hook.setVelocity(100, pct);
+  Intake.setVelocity(80, pct);
   Lift.resetPosition();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);

@@ -179,17 +179,17 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   DTrain.spin(reverse, 50, pct);
   wait(4.3, sec);
   DTrain.stop(coast);
-  }
+}
 
 void driver(){
   int t = 0;
   while(1){
     //strafing (using 3D printed shoulder thingies)
     if(CurDrive.ButtonDown.pressing()){
-      strafe(0, 75);
+      strafe(0, 90);
     }
     else if(CurDrive.ButtonB.pressing()){
-      strafe(1, 75);
+      strafe(1, 90);
     }
 
     //drivetrain (tank)
