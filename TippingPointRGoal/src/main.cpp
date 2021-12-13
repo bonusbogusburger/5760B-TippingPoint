@@ -33,6 +33,8 @@ motor Intake(PORT14, ratio18_1,true);
 motor Lift(PORT4, ratio36_1);
 motor Hook(PORT18, ratio18_1);
 
+//extern pneumatics Solenoid(Brain.ThreeWirePort.A);
+
 gps GPS(PORT7);
 distance DistanceL(PORT9);
 distance DistanceR(PORT19);
@@ -209,6 +211,14 @@ void driver(){
       Hook.stop(hold);
     }
 
+    //pneumatics test code
+    if(CurDrive.ButtonA.pressing()){
+      Solenoid.open();
+    }
+    else if(CurDrive.ButtonX.pressing()){
+      Solenoid.close();
+    }
+
     //CurDrive.ButtonA.pressed(auton);
   }
 }
@@ -221,6 +231,7 @@ int main(){
   Hook.setVelocity(100, pct);
   Intake.setVelocity(80, pct);
   Lift.resetPosition();
+  Solenoid.close();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
