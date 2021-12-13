@@ -25,7 +25,7 @@ controller Controller2;
 motor TLeft(PORT16, ratio18_1);
 motor BLeft(PORT20 , ratio18_1);
 motor TRight(PORT6, ratio18_1, true);
-motor BRight(PORT12, ratio18_1, true);
+motor BRight(PORT11, ratio18_1, true);
 motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
@@ -42,6 +42,7 @@ inertial Inertia(PORT8);
 controller CurDrive = Controller1;
 int vCurDrive = 1;
 
+//WE'VE SWITCHED TO OMNI WHEELS SO THIS IS NO LONGER BEING USED
 //mecanum wheel strafing. 0 = left 1 = right (works in both driver and auton)
 void strafe(int direct, int speed){
   if(direct == 0){
@@ -105,18 +106,25 @@ void correctDrive(directionType direct, double speed){
   DTrain.spin(direct, speed, pct);
 }
 
+//0 = left, 1 = right | 1 degree = 79/4500 rotations (based on observation and rough math)
+void rotateBot(int direct, double degrees, double speed, bool waitfor=true){
+  return;
+}
+
 //rotations to neutral = 3.888
 void auton(){
   Hook.spinFor(reverse, 3.6, rev, false);
-  DTrain.spin(reverse, 80, pct);
-  wait(1.5, sec);
+  DTrain.spinFor(reverse, 1.5, sec, 80, velocityUnits::pct); //go to get neutral goal
   Hook.spinFor(fwd, 3, rev, false);
   DTrain.spin(reverse, 80, pct);
   wait(0.3, sec);
-  DTrain.spin(forward, 60, pct);
-  wait(1.5, sec);
-  speedForGroup(Left, reverse, 1.58, 50, false);
-  speedForGroup(Right, fwd, 1.58, 50);
+  DTrain.stop(hold);
+  DTrain.spin(forward, 60, pct); //after picking up neutral, go back
+  wait(1.73, sec);
+  DTrain.stop(hold);
+  speedForGroup(Left, reverse, 0.79, 25, false);
+  speedForGroup(Right, fwd, 0.79, 25);
+  DTrain.stop(hold);
   speedForGroup(DTrain, reverse, 0.5, 60, false);
   speedFor(Lift, fwd, 1.35 ,50);
   DTrain.spin(fwd, 60, pct);
@@ -124,45 +132,44 @@ void auton(){
   speedForGroup(DTrain, reverse, 0.3, 20, false);
   speedFor(Lift, reverse, 0.6175, 50, false);
   wait(0.5, sec);
+  DTrain.stop(hold);
   speedForGroup(DTrain, reverse, 1.3, 50,false);
   wait(1.2, sec);
-  speedForGroup(DTrain, fwd, 0.425, 25, false);
-  speedForGroup(Left, fwd, 0.7, 50, false);
-  speedForGroup(Right, reverse, 0.7, 50);
-  Intake.spinFor(fwd, 10000, rev, false);
-  speedForGroup(DTrain, fwd, 2.3, 30);
+  DTrain.stop(hold);
+  Intake.spinFor(fwd, 10000, rev, false); 
+  /*speedForGroup(DTrain, fwd, 2, 30);
+  DTrain.stop(hold);
   wait(0.85, sec);
-  speedForGroup(DTrain, reverse, 2.3, 50);
-  speedForGroup(DTrain, fwd, 2.3, 30);
-  /*while(1){
-    while(Intake.current() < 3){
-      Intake.spin(fwd, 80, pct);
-    }
-    Intake.spin(reverse, 80, pct);
-    wait(0.5, sec);
-  }*/
+  speedForGroup(DTrain, reverse, 2, 50);
+  DTrain.stop(hold);
+  speedForGroup(DTrain, fwd, 2, 30);*/
 }
 
 void driver(){
   int t = 0;
   while(1){
-    //strafing (using 3D printed shoulder thingies)
-    if(CurDrive.ButtonDown.pressing()){
+    //mecanum wheel strafing (like i said, omni wheels, this is now unused)
+    /*if(CurDrive.ButtonDown.pressing()){
       strafe(0, 90);
     }
     else if(CurDrive.ButtonB.pressing()){
       strafe(1, 90);
-    }
-
-    //drivetrain (tank)
-    else{
-    Left.spin(fwd, CurDrive.Axis3.position(), pct);
-    Right.spin(fwd, CurDrive.Axis2.position(), pct);
-    }
+    }*/
 
     //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
-    if(CurDrive.ButtonUp.pressing()){
+    if(CurDrive.ButtonDown.pressing()){
       DTrain.stop(hold);
+    }
+    else if(CurDrive.ButtonB.pressing()){
+      Left.spin(fwd, CurDrive.Axis3.position()*0.1, pct);
+      Right.spin(fwd, CurDrive.Axis2.position()*0.1, pct);
+    }
+    else{
+    //drivetrain (tank) (if strafe() returns make this an else statement)
+    TLeft.spin(fwd, CurDrive.Axis3.position(), pct);
+    BLeft.spin(fwd, CurDrive.Axis3.position(), pct);
+    TRight.spin(fwd, CurDrive.Axis2.position(), pct);
+    BRight.spin(fwd, CurDrive.Axis2.position(), pct);
     }
 
     //intake
@@ -182,7 +189,7 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR2.pressing()){
-      Lift.spin(fwd, 65, pct);
+      Lift.spin(fwd, 85, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
       Lift.spin(reverse, 50, pct);

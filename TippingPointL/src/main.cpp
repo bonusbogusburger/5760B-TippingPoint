@@ -25,7 +25,7 @@ controller Controller2;
 motor TLeft(PORT16, ratio18_1);
 motor BLeft(PORT20 , ratio18_1);
 motor TRight(PORT6, ratio18_1, true);
-motor BRight(PORT12, ratio18_1, true);
+motor BRight(PORT11, ratio18_1, true);
 motor_group Left(TLeft, BLeft);
 motor_group Right(TRight, BRight);
 motor_group DTrain(TLeft, BLeft, TRight, BRight);
@@ -42,6 +42,7 @@ inertial Inertia(PORT8);
 controller CurDrive = Controller1;
 int vCurDrive = 1;
 
+//WE'VE SWITCHED TO OMNI WHEELS SO THIS IS NO LONGER BEING USED
 //mecanum wheel strafing. 0 = left 1 = right (works in both driver and auton)
 void strafe(int direct, int speed){
   if(direct == 0){
@@ -68,7 +69,7 @@ void movelift(int direct, double speed){
   }
 }
 
-//spinFor but with speed to make autonomous less of a pain
+//spinFor but with speed to make autonomous less of a pain (this might not be necessary actually????? the reason why confuses me)
 void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitfor=true){
   Motor.setVelocity(speed, pct);
   Motor.spinFor(direct, rotations, rev, waitfor);
@@ -105,48 +106,58 @@ void correctDrive(directionType direct, double speed){
   DTrain.spin(direct, speed, pct);
 }
 
+//0 = left, 1 = right | 1 degree = 79/4500 rotations (based on observation and rough math)
+void rotateBot(int direct, double degrees, double speed, bool waitfor=true){
+  return;
+}
+
 //rotations to neutral = 3.888
 void auton(){
-  speedFor(Lift, fwd, 1.35 ,50);
-  DTrain.spin(forward, 80, pct);
+  Hook.spinFor(reverse, 3.6, rev, false);
+  DTrain.spinFor(reverse, 1.5, sec, 80, velocityUnits::pct); //go to get neutral goal
+  Hook.spinFor(fwd, 3, rev, false);
+  DTrain.spin(reverse, 80, pct);
+  wait(0.3, sec);
+  DTrain.stop(hold);
+  DTrain.spin(forward, 60, pct); //after picking up neutral, go back
   wait(1.9, sec);
   DTrain.stop(hold);
-  speedFor(Lift, reverse, 0.5, 60, false);
-  wait(0.5, sec);
-  speedForGroup(DTrain, reverse, 4, 70);
-  speedFor(Lift, forward, 0.5, 60, false);
-  Intake.spin(fwd, 70, pct);
 }
 
 void driver(){
   int t = 0;
   while(1){
-    //strafing (using 3D printed shoulder thingies)
-    if(CurDrive.ButtonDown.pressing()){
-      strafe(0, 75);
+    //mecanum wheel strafing (like i said, omni wheels, this is now unused)
+    /*if(CurDrive.ButtonDown.pressing()){
+      strafe(0, 90);
     }
     else if(CurDrive.ButtonB.pressing()){
-      strafe(1, 75);
-    }
-
-    //drivetrain (tank)
-    else{
-    Left.spin(fwd, CurDrive.Axis3.position(), pct);
-    Right.spin(fwd, CurDrive.Axis2.position(), pct);
-    }
+      strafe(1, 90);
+    }*/
 
     //brake drivetrain motors (seems to make all motors sticky after being held for a reason beyond my comprehension)
-    if(CurDrive.ButtonUp.pressing()){
+    if(CurDrive.ButtonDown.pressing()){
       DTrain.stop(hold);
+    }
+    else if(CurDrive.ButtonB.pressing()){
+      Left.spin(fwd, CurDrive.Axis3.position()*0.1, pct);
+      Right.spin(fwd, CurDrive.Axis2.position()*0.1, pct);
+    }
+    else{
+    //drivetrain (tank) (if strafe() returns make this an else statement)
+    TLeft.spin(fwd, CurDrive.Axis3.position(), pct);
+    BLeft.spin(fwd, CurDrive.Axis3.position(), pct);
+    TRight.spin(fwd, CurDrive.Axis2.position(), pct);
+    BRight.spin(fwd, CurDrive.Axis2.position(), pct);
     }
 
     //intake
     if(CurDrive.ButtonL1.pressing()){
-      Intake.spin(fwd, 85, pct);
+      Intake.spin(fwd, 100, pct);
       t = 1;
     }
     else if(CurDrive.ButtonL2.pressing()){
-      Intake.spin(reverse, 80, pct);
+      Intake.spin(reverse, 100, pct);
     }
     else if(CurDrive.ButtonLeft.pressing()){
       Intake.spin(fwd, 20, pct);
@@ -157,7 +168,7 @@ void driver(){
 
     //lift
     if(CurDrive.ButtonR2.pressing()){
-      Lift.spin(fwd, 65, pct);
+      Lift.spin(fwd, 85, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
       Lift.spin(reverse, 50, pct);
@@ -187,6 +198,7 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   Hook.setVelocity(100, pct);
+  Intake.setVelocity(80, pct);
   Lift.resetPosition();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
@@ -202,6 +214,7 @@ int main(){
     Brain.Screen.printAt(20, 160, "BRight Temp: %f ℃", BRight.temperature(celsius));
     Brain.Screen.printAt(20, 180, "Lift Temp: %f ℃", Lift.temperature(celsius));
     Brain.Screen.printAt(20, 200, "Hook Temp: %f ℃", Hook.temperature(celsius));
+    Brain.Screen.printAt(20, 200, "Intake Current: %f A", Intake.current());
     
   }
 }

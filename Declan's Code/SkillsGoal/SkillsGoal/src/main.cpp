@@ -159,8 +159,8 @@ void auton(){ //this hurts to look at but it works (hopefully) so shush
   speedFor(Lift, forward, 0.6175, 50);
   DTrain.spin(reverse, 80, pct);
   wait(0.75, sec);
-  strafe(0, 90);
-  wait(0.5, sec);
+  /*strafe(0, 90);
+  wait(0.5, sec);*/
   DTrain.spin(reverse, 50, pct);
   wait(2.4, sec);
   DTrain.spin(forward, 60, pct);
