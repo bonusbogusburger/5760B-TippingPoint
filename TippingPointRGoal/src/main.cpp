@@ -95,6 +95,13 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
   MotorGroup.spinFor(direct, rotations, rev, waitfor);
 }
 
+//prototype (i have no idea if this works)
+void moveTo(double x, double y){
+  double deltaX = GPS.xPosition() - x;
+  double deltaY = GPS.yPosition() - y;
+  double turnAngle = atan(fabs(deltaY) - fabs(deltaX));
+}
+
 //outdated, needs to be redone. completely.
 void auton(){
   //Hook.spinFor(reverse, 3.6, rev, false);
