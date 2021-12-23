@@ -2,7 +2,9 @@ using namespace vex;
 
 extern brain Brain;
 extern limit HookLimit;
-extern pneumatics Solenoid;
+extern pneumatics RightClamp;
+extern pneumatics LeftClamp;
+extern pneumatics RRelease;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

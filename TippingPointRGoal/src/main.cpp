@@ -12,26 +12,32 @@
 
 #include "vex.h"
 #include <iostream>
+#include <math.h>
+
 using namespace vex;
-double x = 0;
-double y = 0;
-double avgdistance = 0;
+
 double shift = 1;
+double toDegrees = 180/M_PI;
+
+//define competition functions/controllers
 competition Competition;
 controller Controller1;
 controller Controller2;
 
-motor Left1(PORT19, ratio18_1, true);
-motor Left2(PORT17 , ratio18_1, true);
-motor Left3(PORT18, ratio18_1, true);
-motor Right1(PORT16, ratio18_1, true);
-motor Right2(PORT11, ratio18_1, true);
-motor Right3(PORT15, ratio18_1, true);
+//define motors
+motor Left1(PORT18, ratio18_1, true);
+motor Left2(PORT10 , ratio18_1, true);
+motor Left3(PORT8, ratio18_1, true);
+motor Right1(PORT14, ratio18_1, true);
+motor Right2(PORT20, ratio18_1, true);
+motor Right3(PORT13, ratio18_1, true);
 motor_group Left(Left1, Left2, Left3);
 motor_group Right(Right1, Right2, Right3);
 motor_group DTrain(Left1, Left2, Left3, Right1, Right2, Right3);
-motor IL(PORT3, ratio18_1,true);
+motor IL(PORT21, ratio18_1,true);
+motor Hook(PORT16);
 
+//define sensors
 gps GPS(PORT7);
 distance DistanceL(PORT9);
 distance DistanceR(PORT19);
@@ -41,13 +47,14 @@ inertial Inertia(PORT8);
 controller CurDrive = Controller1;
 int vCurDrive = 1;
 
-int gearShift(){ //gear shift task
+//gear shift task
+int gearShift(){
   CurDrive.Screen.setCursor(3, 1);
   CurDrive.Screen.print("MAX DUMPY");
   while(1){
     if(CurDrive.ButtonB.pressing()){
       CurDrive.Screen.clearLine(3);
-      wait(0.35, sec); //this is why it's a task btw
+      wait(0.2, sec); //this is why it's a task btw
       if(shift == 1){
         shift = 0.5;
         CurDrive.Screen.print("50%% DUMPY");
@@ -63,6 +70,30 @@ int gearShift(){ //gear shift task
     }
   }
   return 1;
+}
+
+//task for toggling solenoids
+void toggleSolenoid(controller::button butt, pneumatics solenoid){
+  while(1){
+    if(butt.pressing()){
+      if(solenoid.value() == 0){
+        solenoid.open();
+        wait(0.2, sec);
+      }
+      else if(solenoid.value() == 1){
+        solenoid.close();
+        wait(0.2, sec);
+      }
+    }
+  }
+}
+int toggleLeftClamp(){ //tasks don't take parameters :(
+  toggleSolenoid(CurDrive.ButtonRight, LeftClamp);
+  return 0;
+}
+int toggleRightClamp(){
+  toggleSolenoid(CurDrive.ButtonY, RightClamp);
+  return 0;
 }
 
 //WE'VE SWITCHED TO OMNI WHEELS SO THIS IS NO LONGER BEING USED (keeping just in case)
@@ -96,10 +127,11 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
 }
 
 //prototype (i have no idea if this works)
-void moveTo(double x, double y){
-  double deltaX = GPS.xPosition() - x;
-  double deltaY = GPS.yPosition() - y;
-  double turnAngle = atan(fabs(deltaY) - fabs(deltaX));
+void moveTo(double xFinal, double yFinal){
+  double deltaX = xFinal - GPS.xPosition();
+  double deltaY = yFinal - GPS.yPosition();
+  double turnAngle = atan(fabs(deltaY)/fabs(deltaX))*toDegrees; //trigonometry!
+  std::cout << turnAngle;
 }
 
 //outdated, needs to be redone. completely.
@@ -138,6 +170,8 @@ void auton(){
 
 void driver(){
   task jank(gearShift);
+  //task jank2(toggleLeftClamp);
+  //task jank3(toggleRightClamp);
   while(1){
     //drivetrain (tank)
      if(CurDrive.ButtonDown.pressing()){
@@ -162,6 +196,37 @@ void driver(){
     else{
       IL.stop(coast);
     }
+
+    if(CurDrive.ButtonL2.pressing()){
+      RRelease.open();
+    }
+    else{
+      RRelease.close();
+    }
+
+    if(CurDrive.ButtonR2.pressing()){
+      Hook.spin(fwd, 100, pct);
+    }
+    else if(CurDrive.ButtonA.pressing()){
+      Hook.spin(reverse, 100, pct);
+    }
+    else{
+      Hook.stop(hold);
+    }
+
+    if(CurDrive.ButtonRight.pressing()){
+      LeftClamp.open();
+    }
+    else{
+      LeftClamp.close();
+    }
+
+    if(CurDrive.ButtonA.pressing()){
+      RightClamp.open();
+    }
+    else{
+      RightClamp.close();
+    }
   }
 }
 
@@ -171,11 +236,12 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   IL.resetPosition();
-  Solenoid.close();
+  RRelease.close();
+  RightClamp.close();
+  LeftClamp.close();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    avgdistance = (DistanceL.objectDistance(mm) + DistanceR.objectDistance(mm)) / 2;
     Brain.Screen.printAt(20, 20, "Gyro: %f", Inertia.heading());
     Brain.Screen.printAt(20, 40, "Left1 Temp: %f ℃", Left1.temperature(celsius));
     Brain.Screen.printAt(20, 60, "Left2 Temp: %f ℃", Left2.temperature(celsius));
