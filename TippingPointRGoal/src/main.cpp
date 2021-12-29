@@ -339,17 +339,17 @@ void driver(){
     }
 
     if(CurDrive.ButtonY.pressing()){
-      LeftClamp.open();
+      LeftClamp.close();
     }
     else{
-      LeftClamp.close();
+      LeftClamp.open();
     }
 
     if(CurDrive.ButtonRight.pressing()){
-      RightClamp.open();
+      RightClamp.close();
     }
     else{
-      RightClamp.close();
+      RightClamp.open();
     }
   }
 }
@@ -361,7 +361,7 @@ int main(){
   Inertia.calibrate();
   IL.resetPosition();
   RRelease.close();
-  RightClamp.close();
+  RightClamp.open();
   LeftClamp.close();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
