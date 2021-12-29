@@ -1,8 +1,3 @@
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// MotorGroup3          motor_group   3, 5            
-// ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
@@ -18,7 +13,6 @@
 #include "vex.h"
 #include <iostream>
 #include <math.h>
-#include <visionsensor.h>
 
 using namespace vex;
 
@@ -31,15 +25,15 @@ controller Controller1;
 controller Controller2;
 
 //define motors
-motor Left1(PORT18, ratio18_1);
+motor Left1(PORT18, ratio18_1, true);
 motor Left2(PORT10 , ratio18_1, true);
 motor Left3(PORT7, ratio18_1, true);
-motor Right1(PORT14, ratio18_1);
+motor Right1(PORT14, ratio18_1, true);
 motor Right2(PORT20, ratio18_1, true);
 motor Right3(PORT13, ratio18_1, true);
 motor_group Left(Left1, Left2, Left3);
 motor_group Right(Right1, Right2, Right3);
-drivetrain DTrain(Left, Right);
+motor_group DTrain(Left1, Left2, Left3, Right1, Right2, Right3);
 motor IL(PORT21, ratio18_1,true);
 motor Hook(PORT16);
 
@@ -47,8 +41,8 @@ motor Hook(PORT16);
 gps GPS(PORT7);
 distance DistanceL(PORT9);
 distance DistanceR(PORT19);
-inertial Inertia(PORT11);
-vision Vision(PORT17);
+inertial Inertia(PORT8);
+
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
 int vCurDrive = 1;
@@ -76,113 +70,6 @@ int gearShift(){
     }
   }
   return 1;
-}
-
-void LineUpY(){
-Vision1.setBrightness(50);
-Vision1.setSignature(YGoal);
-//camera image is 316 pixels wide
-int screen_middle_x = 316 / 2;
-bool linedup = false;
-  while(not linedup) {
-    Vision1.takeSnapshot(YGoal);
-    if(Vision1.objectCount > 0) {
-      if(Vision1.largestObject.centerX < screen_middle_x - 5) {
-        //On the left, turning left
-        Left.spin(reverse, 5, pct);  
-        Right.spin(reverse, 5, pct);
-        wait(0.1, sec);
-      } 
-      else if (Vision1.largestObject.centerX > screen_middle_x + 5) {
-        //On the right, turning right
-        Left.spin(forward, 5, pct);  
-        Right.spin(forward, 5, pct); 
-        wait(0.1, sec);
-      } 
-      else {
-        //Done lining up
-        linedup = true;
-        Left.stop(coast);
-        Right.stop(coast);
-                
-      }
-    } 
-    else {
-      Left.stop(coast);
-      Right.stop(coast);      
-            
-    }
-  }
-}
-
-
-void PIDturnToValue(){
-  while((Inertia.heading( rotationUnits::deg )>358) == 0)  {//turned right correct left
-   if( 60 > Inertia.heading( rotationUnits::deg )){
-    Left.spin(reverse, 5, pct);  
-    Right.spin(reverse, 5, pct);
-    waitUntil(Inertia.heading( rotationUnits::deg ) > 300);
-  }
-  else if (300 < Inertia.heading( rotationUnits::deg )){//turned left correct right
-    Left.spin(forward, 5, pct);  
-    Right.spin(forward, 5, pct);
-    waitUntil(60 > Inertia.heading( rotationUnits::deg ));
-  }
-  }
-}
-
-void PIDstraight(){
-  int error;
-  int speedL; 
-  int speedR;
-  double desiredValue = 359;
-  int currentValue = Inertia.heading( rotationUnits::deg );
-  int kP = 50;
-  error = currentValue - desiredValue;
-  speedL = (error/kP)*-1;
-  speedR = (error/kP);
-  while(1){
-  Left.spin(forward, 10 + speedL, pct);  
-  Right.spin(reverse, 10 + speedR, pct); 
-  this_thread::sleep_for(30);
-  }
-}
-
-void TurnLeft(){
-  Left.spin(reverse, 90, pct);  
-  Right.spin(reverse, 90, pct);
-  wait(0.5, sec); 
-  Left.stop();
-  Right.stop();
-  wait(0.3, sec);
-  while( Inertia.heading( rotationUnits::deg ) <= 269 ) {
-    Left.spin(forward, 7, pct);  
-    Right.spin(forward, 7, pct);  
-    this_thread::sleep_for(10);
-  }
-  Left.stop(brake);
-  Right.stop(brake);
-  Inertia.calibrate();
-}
-
-void TurnRight(){
-  Left.spin(forward, 50, pct);  
-  Right.spin(forward, 50, pct);
-  waitUntil( 20 > Inertia.heading( rotationUnits::deg ));
-  Left.spin(forward, 50, pct);  
-  Right.spin(forward, 50, pct);
-  waitUntil(40 < Inertia.heading( rotationUnits::deg ));
-  Left.stop();
-  Right.stop();
-  wait(0.4, sec);
-  while( Inertia.heading( rotationUnits::deg ) >= 91 ) {
-    Left.spin(reverse, 7, pct);  
-    Right.spin(reverse, 7, pct);  
-    this_thread::sleep_for(10);
-  }
-  Left.stop(brake);
-  Right.stop(brake);
-  Inertia.calibrate();
 }
 
 //task for toggling solenoids
@@ -249,17 +136,6 @@ void moveTo(double xFinal, double yFinal){
 
 //outdated, needs to be redone. completely.
 void auton(){
-  while(1){
-    wait(2, sec);
-    TurnRight();
-    wait(2, sec);
-    TurnLeft();
-  }
-}
-
-
-
-  /*
   //Hook.spinFor(reverse, 3.6, rev, false);
   DTrain.spinFor(reverse, 1.5, sec, 80, velocityUnits::pct); //go to get neutral goal
   //Hook.spinFor(fwd, 3, rev, false);
@@ -284,13 +160,13 @@ void auton(){
   wait(1.2, sec);
   DTrain.stop(hold);
   //Intake.spinFor(fwd, 10000, rev, false); 
-  speedForGroup(DTrain, fwd, 2, 30);
+  /*speedForGroup(DTrain, fwd, 2, 30);
   DTrain.stop(hold);
   wait(0.85, sec);
   speedForGroup(DTrain, reverse, 2, 50);
   DTrain.stop(hold);
   speedForGroup(DTrain, fwd, 2, 30);*/
-
+}
 
 void driver(){
   task jank(gearShift);
@@ -302,11 +178,11 @@ void driver(){
       DTrain.stop(hold);
     }
     else{
-    //drivetrain (tank)
-    Left1.spin(fwd, CurDrive.Axis3.position()*shift, pct);
+    //drivetrain (tank) (if strafe() returns make this an else statement)
+    Left1.spin(reverse, CurDrive.Axis3.position()*shift, pct);
     Left2.spin(fwd, CurDrive.Axis3.position()*shift, pct);
     Left3.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Right1.spin(reverse, CurDrive.Axis2.position()*shift, pct);
+    Right1.spin(fwd, CurDrive.Axis2.position()*shift, pct);
     Right2.spin(reverse, CurDrive.Axis2.position()*shift, pct);
     Right3.spin(reverse, CurDrive.Axis2.position()*shift, pct);
     }
@@ -328,10 +204,10 @@ void driver(){
       RRelease.close();
     }
 
-    if(CurDrive.ButtonB.pressing()){
+    if(CurDrive.ButtonDown.pressing()){
       Hook.spin(fwd, 100, pct);
     }
-    else if(CurDrive.ButtonDown.pressing()){
+    else if(CurDrive.ButtonB.pressing()){
       Hook.spin(reverse, 100, pct);
     }
     else{
