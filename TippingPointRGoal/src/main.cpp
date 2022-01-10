@@ -42,6 +42,7 @@ motor_group Right(Right1, Right2, Right3);
 drivetrain DTrain(Left, Right);
 motor IL(PORT21, ratio18_1,true);
 motor Hook(PORT16);
+motor Motor(PORT17);
 
 //define sensors
 gps GPS(PORT7);
@@ -49,6 +50,9 @@ distance DistanceL(PORT9);
 distance DistanceR(PORT19);
 inertial Inertia(PORT11);
 vision Vision(PORT17);
+triport ThreeWirePort = vex::triport( vex::PORT22 );
+vex::limit HookLimit = vex::limit(ThreeWirePort.A);
+
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
 int vCurDrive = 1;
@@ -185,47 +189,6 @@ void TurnRight(){
   Inertia.calibrate();
 }
 
-//task for toggling solenoids
-void toggleSolenoid(controller::button butt, pneumatics solenoid){
-  while(1){
-    if(butt.pressing()){
-      if(solenoid.value() == 0){
-        solenoid.open();
-        wait(0.2, sec);
-      }
-      else if(solenoid.value() == 1){
-        solenoid.close();
-        wait(0.2, sec);
-      }
-    }
-  }
-}
-int toggleLeftClamp(){ //tasks don't take parameters :(
-  toggleSolenoid(CurDrive.ButtonRight, RightClamp);
-  return 0;
-}
-int toggleRightClamp(){
-  toggleSolenoid(CurDrive.ButtonY, LeftClamp);
-  return 0;
-}
-
-//WE'VE SWITCHED TO OMNI WHEELS SO THIS IS NO LONGER BEING USED (keeping just in case)
-//mecanum wheel strafing. 0 = left 1 = right (works in both driver and auton)
-/*void strafe(int direct, int speed){
-  if(direct == 0){
-    TLeft.spin(reverse, speed, pct);
-    BLeft.spin(fwd, speed, pct);
-    TRight.spin(fwd, speed, pct);
-    BRight.spin(reverse, speed, pct);
-  }
-  else if(direct == 1){
-    TLeft.spin(fwd, speed, pct);
-    BLeft.spin(reverse, speed, pct);
-    TRight.spin(reverse, speed, pct);
-    BRight.spin(fwd, speed, pct);
-  }
-}*/
-
 //spinFor but with speed to make autonomous less of a pain
 //i have learned that time-based spinFor actually uses speed but rotation-based doesn't???? ok
 void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitfor=true){
@@ -247,75 +210,66 @@ void moveTo(double xFinal, double yFinal){
   std::cout << turnAngle;
 }
 
-//outdated, needs to be redone. completely.
-void auton(){
-  while(1){
-    wait(2, sec);
-    TurnRight();
-    wait(2, sec);
-    TurnLeft();
+int dropHook(){ //task to drop the hook
+  while(HookLimit.pressing() != 1){
+    Hook.spin(fwd, 100, pct);
   }
+  Hook.stop(hold);
+  return 0;
 }
 
+//drive to GPS x or y coordinates (there's probably a much better way to go about this)
+double x = 0;
+double y = 0;
+double coordspeed = 0;
+directionType direct = fwd;
+int driveToX(double x, directionType coorddirect, double coordspeed){
+  while(GPS.xPosition(mm) != x){
+    DTrain.drive(direct, coordspeed, velocityUnits::pct);
+  }
+  return 1;
+}
+int driveToY(double y, directionType coorddirect, double speed){
+  while(GPS.yPosition(mm) != y){
+    DTrain.drive(direct, coordspeed, velocityUnits::pct);
+  }
+  return 1;
+}
+void DTCoordParams(double xpos, double ypos, directionType direct, double speed){ //workaround for tasks not having parameters
 
+}
 
-  /*
-  //Hook.spinFor(reverse, 3.6, rev, false);
-  DTrain.spinFor(reverse, 1.5, sec, 80, velocityUnits::pct); //go to get neutral goal
-  //Hook.spinFor(fwd, 3, rev, false);
-  DTrain.spin(reverse, 80, pct);
-  wait(0.3, sec);
+//outdated, needs to be redone. completely. as a matter of fact it's BEING redone. NOW
+void auton(){
+  LeftClamp.close();
+  task yeah(dropHook);
+  driveToX(50, fwd, 100);
+  LeftClamp.open();
   DTrain.stop(hold);
-  DTrain.spin(forward, 60, pct); //after picking up neutral, go back
-  wait(1.73, sec);
+  driveToX(-850, reverse, 100);
   DTrain.stop(hold);
-  speedForGroup(Left, reverse, 0.79, 25, false);
-  speedForGroup(Right, fwd, 0.79, 25);
-  DTrain.stop(hold);
-  speedForGroup(DTrain, reverse, 0.5, 60, false);
-  speedFor(IL, fwd, 1.35 ,50);
-  DTrain.spin(fwd, 60, pct);
-  wait(1.35, sec);
-  speedForGroup(DTrain, reverse, 0.3, 20, false);
-  speedFor(IL, reverse, 0.6175, 50, false);
-  wait(0.5, sec);
-  DTrain.stop(hold);
-  speedForGroup(DTrain, reverse, 1.3, 50,false);
-  wait(1.2, sec);
-  DTrain.stop(hold);
-  //Intake.spinFor(fwd, 10000, rev, false); 
-  speedForGroup(DTrain, fwd, 2, 30);
-  DTrain.stop(hold);
-  wait(0.85, sec);
-  speedForGroup(DTrain, reverse, 2, 50);
-  DTrain.stop(hold);
-  speedForGroup(DTrain, fwd, 2, 30);*/
-
+}
 
 void driver(){
   task jank(gearShift);
   //task jank2(toggleLeftClamp);
   //task jank3(toggleRightClamp);
   while(1){
-    //drivetrain (tank)
+    //drivetrain brake
      if(CurDrive.ButtonLeft.pressing()){
       DTrain.stop(hold);
     }
     else{
     //drivetrain (tank)
-    Left1.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Left2.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Left3.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Right1.spin(reverse, CurDrive.Axis2.position()*shift, pct);
-    Right2.spin(reverse, CurDrive.Axis2.position()*shift, pct);
-    Right3.spin(reverse, CurDrive.Axis2.position()*shift, pct);
+    Left.spin(fwd, CurDrive.Axis3.position()*shift, pct);
+    Right.spin(reverse, CurDrive.Axis2.position()*shift, pct);
     }
 
     if(CurDrive.ButtonL1.pressing()){
       IL.spin(fwd, 100, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
-      IL.spin(reverse, 65, pct);
+      IL.spin(reverse, 65*shift, pct);
     }
     else{
       IL.stop(coast);
@@ -328,7 +282,8 @@ void driver(){
       RRelease.close();
     }
 
-    if(CurDrive.ButtonB.pressing()){
+    if(HookLimit.pressing()==0){
+      if(CurDrive.ButtonB.pressing()){
       Hook.spin(fwd, 100, pct);
     }
     else if(CurDrive.ButtonDown.pressing()){
@@ -337,19 +292,51 @@ void driver(){
     else{
       Hook.stop(hold);
     }
+    }
 
-    if(CurDrive.ButtonY.pressing()){
+    if(HookLimit.pressing()==1){
+      if(CurDrive.ButtonB.pressing()){
+      Hook.spin(fwd, 100, pct);
+    }
+    else if(CurDrive.ButtonDown.pressing()){
+      Hook.stop(hold);
+    }
+    else{
+      Hook.stop(hold);
+    }
+    }
+    /*if(CurDrive.ButtonB.pressing()){
+      Hook.spin(fwd, 100, pct);
+    }
+    else if(CurDrive.ButtonDown.pressing()){
+      Hook.spin(reverse, 100, pct);
+    }
+    else if(HookLimit.pressing()==0){
+      Hook.stop(hold);
+    }
+    else{
+      Hook.stop(hold);
+    }*/
+
+    if(CurDrive.ButtonRight.pressing()){
       LeftClamp.close();
     }
     else{
       LeftClamp.open();
     }
 
-    if(CurDrive.ButtonRight.pressing()){
+    if(CurDrive.ButtonY.pressing()){
       RightClamp.close();
     }
     else{
       RightClamp.open();
+    }
+
+    if(CurDrive.ButtonUp.pressing()){ //just for easy motor testing
+      Motor.spin(fwd, 50, pct);
+    }
+    else{
+      Motor.stop(coast);
     }
   }
 }
@@ -360,7 +347,7 @@ int main(){
   GPS.calibrate();
   Inertia.calibrate();
   IL.resetPosition();
-  RRelease.close();
+  RRelease.open();
   RightClamp.open();
   LeftClamp.close();
   Competition.drivercontrol(driver);

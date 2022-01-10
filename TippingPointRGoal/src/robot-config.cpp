@@ -8,7 +8,7 @@ using code = vision::code;
 brain  Brain;
 
 // VEXcode device constructors
-limit HookLimit(Brain.ThreeWirePort.A); //A global instance of our limit switch because why
+ //A global instance of our limit switch because why
 pneumatics LeftClamp(Brain.ThreeWirePort.H);
 pneumatics RightClamp(Brain.ThreeWirePort.G);
 pneumatics RRelease(Brain.ThreeWirePort.F);
