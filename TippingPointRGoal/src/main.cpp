@@ -202,13 +202,6 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
   MotorGroup.spinFor(direct, rotations, rev, waitfor);
 }
 
-//prototype (i have no idea if this works)
-void moveTo(double xFinal, double yFinal){
-  double deltaX = xFinal - GPS.xPosition();
-  double deltaY = yFinal - GPS.yPosition();
-  double turnAngle = atan(fabs(deltaY)/fabs(deltaX))*toDegrees; //trigonometry!
-  std::cout << turnAngle;
-}
 
 int dropHook(){ //task to drop the hook
   while(HookLimit.pressing() != 1){
@@ -218,25 +211,50 @@ int dropHook(){ //task to drop the hook
   return 0;
 }
 
+//Super Cool GPS Functions
+//prototype (i have no idea if this works)
+void moveTo(double xFinal, double yFinal){ //robot calculates angle it needs to turn in otder to drive to a desired location
+  double deltaX = xFinal - GPS.xPosition(mm);
+  double deltaY = yFinal - GPS.yPosition(mm);
+  double turnAngle = atan(fabs(deltaY)/fabs(deltaX))*toDegrees; //trigonometry! my worst math unit!
+  std::cout << turnAngle;
+  if(deltaY < 0){
+    turnAngle += 180;
+  }
+}
+
 //drive to GPS x or y coordinates (there's probably a much better way to go about this)
 double x = 0;
 double y = 0;
 double coordspeed = 0;
-directionType direct = fwd;
-int driveToX(double x, directionType coorddirect, double coordspeed){
+directionType coorddirect = fwd;
+void driveToX(double x, directionType direct, double speed){
   while(GPS.xPosition(mm) != x){
-    DTrain.drive(direct, coordspeed, velocityUnits::pct);
+    DTrain.drive(direct, speed, velocityUnits::pct);
   }
-  return 1;
 }
-int driveToY(double y, directionType coorddirect, double speed){
+void driveToY(double y, directionType direct, double speed){
   while(GPS.yPosition(mm) != y){
-    DTrain.drive(direct, coordspeed, velocityUnits::pct);
+    DTrain.drive(direct, speed, velocityUnits::pct);
+  }
+}
+void dTCoordParams(double xpos, double ypos, directionType directio, double speed){ //workaround for tasks not having parameters
+  x = xpos;
+  y = ypos;
+  coorddirect = directio;
+  coordspeed = speed;
+}
+int driveToXTask(){ //these are in case we want to make these non-blocking. this makes things less complicated trust me
+  while(GPS.xPosition(mm) != x){
+    DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
   }
   return 1;
 }
-void DTCoordParams(double xpos, double ypos, directionType direct, double speed){ //workaround for tasks not having parameters
-
+int driveToYTask(){
+  while(GPS.yPosition(mm) != y){
+    DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+  }
+  return 1;
 }
 
 //outdated, needs to be redone. completely. as a matter of fact it's BEING redone. NOW
@@ -248,6 +266,25 @@ void auton(){
   DTrain.stop(hold);
   driveToX(-850, reverse, 100);
   DTrain.stop(hold);
+
+/*Left1.spin(forward, 100, pct);
+wait(1, sec);
+Left1.stop(coast);
+Left2.spin(forward, 100, pct);
+wait(1, sec);
+Left2.stop(coast);
+Left3.spin(forward, 100, pct);
+wait(1, sec);
+Left3.stop(coast);
+Right1.spin(forward, 100, pct);
+wait(1, sec);
+Right1.stop(coast);
+Right2.spin(forward, 100, pct);
+wait(1, sec);
+Right2.stop(coast);
+Right3.spin(forward, 100, pct);
+wait(1, sec);
+Right3.stop(coast);*/
 }
 
 void driver(){
