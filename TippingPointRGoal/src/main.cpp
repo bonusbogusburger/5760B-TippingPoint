@@ -213,14 +213,19 @@ int dropHook(){ //task to drop the hook
 
 //Super Cool GPS Functions
 //prototype (i have no idea if this works)
-void moveTo(double xFinal, double yFinal){ //robot calculates angle it needs to turn in otder to drive to a desired location
+void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angle it needs to turn in otder to drive to a desired location
   double deltaX = xFinal - GPS.xPosition(mm);
   double deltaY = yFinal - GPS.yPosition(mm);
-  double turnAngle = atan(fabs(deltaY)/fabs(deltaX))*toDegrees; //trigonometry! my worst math unit!
-  std::cout << turnAngle;
+  double turnAngle = atan(deltaY/deltaX)*toDegrees; //trigonometry! my worst math unit!
+  double driveDistance = sqrt((deltaX*deltaX) + (deltaY*deltaY));
   if(deltaY < 0){
     turnAngle += 180;
   }
+  while(GPS.heading() != turnAngle){
+    Left.spin(fwd, 75, pct);
+    Right.spin(fwd, 75, pct);
+  }
+  DTrain.driveFor(driveDistance, mm); //no clue if this'll work
 }
 
 //drive to GPS x or y coordinates (there's probably a much better way to go about this)
@@ -289,8 +294,6 @@ Right3.stop(coast);*/
 
 void driver(){
   task jank(gearShift);
-  //task jank2(toggleLeftClamp);
-  //task jank3(toggleRightClamp);
   while(1){
     //drivetrain brake
      if(CurDrive.ButtonLeft.pressing()){
