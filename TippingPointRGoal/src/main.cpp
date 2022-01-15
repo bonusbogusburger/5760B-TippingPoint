@@ -31,12 +31,12 @@ controller Controller1;
 controller Controller2;
 
 //define motors
-motor Left1(PORT18, ratio18_1);
+motor Left1(PORT18, ratio18_1, false);
 motor Left2(PORT10 , ratio18_1, true);
 motor Left3(PORT7, ratio18_1, true);
-motor Right1(PORT14, ratio18_1);
-motor Right2(PORT20, ratio18_1, true);
-motor Right3(PORT13, ratio18_1, true);
+motor Right1(PORT14, ratio18_1, true);
+motor Right2(PORT20, ratio18_1, false);
+motor Right3(PORT13, ratio18_1, false);
 motor_group Left(Left1, Left2, Left3);
 motor_group Right(Right1, Right2, Right3);
 drivetrain DTrain(Left, Right);
@@ -45,7 +45,7 @@ motor Hook(PORT16);
 motor Motor(PORT17);
 
 //define sensors
-gps GPS(PORT7);
+gps GPS(PORT5); //Midpoint of GPS tape about 10 inches high
 distance DistanceL(PORT9);
 distance DistanceR(PORT19);
 inertial Inertia(PORT11);
@@ -205,7 +205,7 @@ void speedForGroup(motor_group MotorGroup, directionType direct, double rotation
 
 int dropHook(){ //task to drop the hook
   while(HookLimit.pressing() != 1){
-    Hook.spin(fwd, 100, pct);
+    Hook.spin(reverse, 100, pct);
   }
   Hook.stop(hold);
   return 0;
@@ -234,13 +234,21 @@ double y = 0;
 double coordspeed = 0;
 directionType coorddirect = fwd;
 void driveToX(double x, directionType direct, double speed){
-  while(GPS.xPosition(mm) != x){
-    DTrain.drive(direct, speed, velocityUnits::pct);
+  if(x - GPS.xPosition() > 0){ //there's probably a better way to do this
+    while(GPS.xPosition(inches) <= x){
+      DTrain.drive(direct, speed, velocityUnits::pct);
+    }
+  }
+  else{
+    while(GPS.xPosition(inches) >= x){
+      DTrain.drive(direct, speed, velocityUnits::pct);
+    }
   }
 }
 void driveToY(double y, directionType direct, double speed){
   while(GPS.yPosition(mm) != y){
-    DTrain.drive(direct, speed, velocityUnits::pct);
+    Left.spin(direct, speed, velocityUnits::pct);
+    Right.spin(direct, speed*-1, velocityUnits::pct);
   }
 }
 void dTCoordParams(double xpos, double ypos, directionType directio, double speed){ //workaround for tasks not having parameters
@@ -264,32 +272,45 @@ int driveToYTask(){
 
 //outdated, needs to be redone. completely. as a matter of fact it's BEING redone. NOW
 void auton(){
-  LeftClamp.close();
+  Inertia.setHeading(90, deg);
+  RightClamp.close();
+  wait(1.5, sec);
   task yeah(dropHook);
-  driveToX(50, fwd, 100);
-  LeftClamp.open();
+  wait(1, sec);
+  driveToX(-9.5, reverse, 100);
+  RightClamp.open();
   DTrain.stop(hold);
-  driveToX(-850, reverse, 100);
+  driveToX(-1, fwd, 100);
   DTrain.stop(hold);
+  wait(0.5, sec);
+  RRelease.open();
+  IL.spinFor(fwd, 7, rev, false);
+  while(GPS.heading() < 155){
+    Left.spin(fwd, 25, pct);
+    Right.spin(reverse, 25, pct);
+  }
+  DTrain.stop(brake);
+  wait(2, sec);
+  RRelease.close();
 
-/*Left1.spin(forward, 100, pct);
-wait(1, sec);
-Left1.stop(coast);
-Left2.spin(forward, 100, pct);
-wait(1, sec);
-Left2.stop(coast);
-Left3.spin(forward, 100, pct);
-wait(1, sec);
-Left3.stop(coast);
-Right1.spin(forward, 100, pct);
-wait(1, sec);
-Right1.stop(coast);
-Right2.spin(forward, 100, pct);
-wait(1, sec);
-Right2.stop(coast);
-Right3.spin(forward, 100, pct);
-wait(1, sec);
-Right3.stop(coast);*/
+  /*Left1.spin(forward, 100, pct);
+  wait(1, sec);
+  Left1.stop(coast);
+  Left2.spin(forward, 100, pct);
+  wait(1, sec);
+  Left2.stop(coast);
+  Left3.spin(forward, 100, pct);
+  wait(1, sec);
+  Left3.stop(coast);
+  Right1.spin(forward, 100, pct);
+  wait(1, sec);
+  Right1.stop(coast);
+  Right2.spin(forward, 100, pct);
+  wait(1, sec);
+  Right2.stop(coast);
+  Right3.spin(forward, 100, pct);
+  wait(1, sec);
+  Right3.stop(coast);*/
 }
 
 void driver(){
@@ -302,7 +323,7 @@ void driver(){
     else{
     //drivetrain (tank)
     Left.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Right.spin(reverse, CurDrive.Axis2.position()*shift, pct);
+    Right.spin(fwd, CurDrive.Axis2.position()*shift, pct);
     }
 
     if(CurDrive.ButtonL1.pressing()){
@@ -381,24 +402,33 @@ void driver(){
   }
 }
 
+int printGPS(){
+  wait(0.5, sec);
+  std::cout << GPS.xPosition(mm);
+  return 1;
+}
+
 int main(){
   // Initializing Robot Configuration. DO NOT REMOVE! (ok)
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
   IL.resetPosition();
+  IL.setVelocity(100, pct);
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    Brain.Screen.printAt(20, 20, "Gyro: %f", Inertia.heading());
-    Brain.Screen.printAt(20, 40, "Left1 Temp: %f ℃", Left1.temperature(celsius));
-    Brain.Screen.printAt(20, 60, "Left2 Temp: %f ℃", Left2.temperature(celsius));
-    Brain.Screen.printAt(20, 80, "Left3 Temp: %f ℃", Left3.temperature(celsius));
-    Brain.Screen.printAt(20, 100, "Right1 Temp: %f ℃", Right1.temperature(celsius));
-    Brain.Screen.printAt(20, 120, "Right2 Temp: %f ℃", Right2.temperature(celsius));
-    Brain.Screen.printAt(20, 140, "Right3 Temp: %f ℃", Right3.temperature(celsius));
+    task bruh(printGPS);
+    Brain.Screen.printAt(20, 20, "GPS X: %f mm", GPS.xPosition(mm));
+    Brain.Screen.printAt(20, 40, "GPS Gyro: %f degrees", GPS.heading(degrees));
+    Brain.Screen.printAt(20, 60, "Left1 Temp: %f ℃", Left1.temperature(celsius));
+    Brain.Screen.printAt(20, 80, "Left2 Temp: %f ℃", Left2.temperature(celsius));
+    Brain.Screen.printAt(20, 100, "Left3 Temp: %f ℃", Left3.temperature(celsius));
+    Brain.Screen.printAt(20, 120, "Right1 Temp: %f ℃", Right1.temperature(celsius));
+    Brain.Screen.printAt(20, 140, "Right2 Temp: %f ℃", Right2.temperature(celsius));
+    Brain.Screen.printAt(20, 160, "Right3 Temp: %f ℃", Right3.temperature(celsius));
   }
 }
