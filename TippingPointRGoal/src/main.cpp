@@ -234,12 +234,12 @@ double y = 0;
 double coordspeed = 0;
 directionType coorddirect = fwd;
 void driveToX(double x, directionType direct, double speed){
-  if(x - GPS.xPosition() > 0){ //there's probably a better way to do this
+  if(x - GPS.xPosition(inches) > 0){
     while(GPS.xPosition(inches) <= x){
       DTrain.drive(direct, speed, velocityUnits::pct);
     }
   }
-  else{
+  else if(x - GPS.xPosition(inches) < 0){
     while(GPS.xPosition(inches) >= x){
       DTrain.drive(direct, speed, velocityUnits::pct);
     }
@@ -276,16 +276,18 @@ void auton(){
   RightClamp.close();
   wait(1.5, sec);
   task yeah(dropHook);
-  wait(1, sec);
-  driveToX(-9.5, reverse, 100);
+  wait(1.3, sec);
+  driveToX(-1, reverse, 100);
   RightClamp.open();
   DTrain.stop(hold);
-  driveToX(-1, fwd, 100);
+  wait(0.5, sec);
+  Hook.rotateFor(fwd, 1, rev);
+  driveToX(-9.5, fwd, 100);
   DTrain.stop(hold);
   wait(0.5, sec);
   RRelease.open();
   IL.spinFor(fwd, 7, rev, false);
-  while(GPS.heading() < 155){
+  while(GPS.heading() < 250){
     Left.spin(fwd, 25, pct);
     Right.spin(reverse, 25, pct);
   }
@@ -413,8 +415,8 @@ int main(){
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
-  IL.resetPosition();
   IL.setVelocity(100, pct);
+  Hook.setVelocity(100, pct);
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
