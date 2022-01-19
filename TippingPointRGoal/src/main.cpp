@@ -229,8 +229,8 @@ void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angl
 }
 
 //drive to GPS x or y coordinates (there's probably a much better way to go about this)
-double x = 0;
-double y = 0;
+double xp = 0;
+double yp = 0;
 double coordspeed = 0;
 directionType coorddirect = fwd;
 void driveToX(double x, directionType direct, double speed){
@@ -246,42 +246,63 @@ void driveToX(double x, directionType direct, double speed){
   }
 }
 void driveToY(double y, directionType direct, double speed){
-  while(GPS.yPosition(mm) != y){
-    Left.spin(direct, speed, velocityUnits::pct);
-    Right.spin(direct, speed*-1, velocityUnits::pct);
+  if(y - GPS.yPosition(inches) > 0){
+    while(GPS.xPosition(inches) <= y){
+      DTrain.drive(direct, speed, velocityUnits::pct);
+    }
+  }
+  else if(y - GPS.yPosition(inches) < 0){
+    while(GPS.yPosition(inches) >= y){
+      DTrain.drive(direct, speed, velocityUnits::pct);
+    }
   }
 }
+
 void dTCoordParams(double xpos, double ypos, directionType directio, double speed){ //workaround for tasks not having parameters
-  x = xpos;
-  y = ypos;
+  xp = xpos;
+  yp = ypos;
   coorddirect = directio;
   coordspeed = speed;
 }
 int driveToXTask(){ //these are in case we want to make these non-blocking. this makes things less complicated trust me
-  while(GPS.xPosition(mm) != x){
-    DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+  if(xp - GPS.xPosition(inches) > 0){
+    while(GPS.xPosition(inches) <= xp){
+      DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+    }
   }
-  return 1;
+  else if(xp - GPS.xPosition(inches) < 0){
+    while(GPS.xPosition(inches) >= xp){
+      DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+    }
+  }
+  return xp;
 }
 int driveToYTask(){
-  while(GPS.yPosition(mm) != y){
-    DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+  if(yp - GPS.xPosition(inches) > 0){
+    while(GPS.xPosition(inches) <= yp){
+      DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+    }
   }
-  return 1;
+  else if(yp - GPS.xPosition(inches) < 0){
+    while(GPS.xPosition(inches) >= yp){
+      DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
+    }
+  }
+  return yp;
 }
 
-//outdated, needs to be redone. completely. as a matter of fact it's BEING redone. NOW
-void auton(){
+//autonomous routines
+void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for competition. mainly for testing)
   Inertia.setHeading(90, deg);
   RightClamp.close();
   wait(1.5, sec);
   task yeah(dropHook);
   wait(1.3, sec);
-  driveToX(-1, reverse, 100);
+  driveToX(-1.3, reverse, 100);
   RightClamp.open();
   DTrain.stop(hold);
-  wait(0.5, sec);
-  Hook.rotateFor(fwd, 1, rev);
+  wait(0.2, sec);
+  Hook.rotateFor(fwd, 2, rev, false);
   driveToX(-9.5, fwd, 100);
   DTrain.stop(hold);
   wait(0.5, sec);
@@ -294,25 +315,10 @@ void auton(){
   DTrain.stop(brake);
   wait(2, sec);
   RRelease.close();
+}
 
-  /*Left1.spin(forward, 100, pct);
-  wait(1, sec);
-  Left1.stop(coast);
-  Left2.spin(forward, 100, pct);
-  wait(1, sec);
-  Left2.stop(coast);
-  Left3.spin(forward, 100, pct);
-  wait(1, sec);
-  Left3.stop(coast);
-  Right1.spin(forward, 100, pct);
-  wait(1, sec);
-  Right1.stop(coast);
-  Right2.spin(forward, 100, pct);
-  wait(1, sec);
-  Right2.stop(coast);
-  Right3.spin(forward, 100, pct);
-  wait(1, sec);
-  Right3.stop(coast);*/
+void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
+  rightBluGPS();
 }
 
 void driver(){
