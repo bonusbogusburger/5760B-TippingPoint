@@ -12,6 +12,7 @@ brain  Brain;
 pneumatics LeftClamp(Brain.ThreeWirePort.H);
 pneumatics RightClamp(Brain.ThreeWirePort.G);
 pneumatics RRelease(Brain.ThreeWirePort.F);
+bumper RightBump(Brain.ThreeWirePort.B);
 // VEXcode generated functions
 
 

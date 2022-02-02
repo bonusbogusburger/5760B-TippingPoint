@@ -6,6 +6,7 @@ extern brain Brain;
 extern pneumatics RightClamp;
 extern pneumatics LeftClamp;
 extern pneumatics RRelease;
+extern bumper RightBump;
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
  * 

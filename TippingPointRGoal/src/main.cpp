@@ -317,6 +317,18 @@ void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for 
   RRelease.close();
 }
 
+void rightBumper(){
+  while(RightBump.pressing() != true){
+    DTrain.drive(fwd, 100, velocityUnits::pct);
+  }
+  RightClamp.close();
+}
+
+//this definitely won't work lmao
+void skills(){
+
+}
+
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
   rightBluGPS();
 }
@@ -394,18 +406,25 @@ void driver(){
       LeftClamp.open();
     }
 
-    if(CurDrive.ButtonY.pressing()){
+    /*if(CurDrive.ButtonY.pressing()){
       RightClamp.close();
     }
     else{
       RightClamp.open();
-    }
+    }*/
 
     if(CurDrive.ButtonUp.pressing()){ //just for easy motor testing
       Motor.spin(fwd, 50, pct);
     }
     else{
       Motor.stop(coast);
+    }
+
+    if(RightBump.pressing()){
+      RightClamp.open();
+    }
+    else{
+      RightClamp.close();
     }
   }
 }
