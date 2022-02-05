@@ -43,6 +43,7 @@ drivetrain DTrain(Left, Right);
 motor IL(PORT21, ratio18_1,true);
 motor Hook(PORT16);
 motor Motor(PORT17);
+distance RDistance(PORT5);
 
 //define sensors
 gps GPS(PORT5); //Midpoint of GPS tape about 10 inches high
@@ -318,10 +319,18 @@ void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for 
 }
 
 void rightBumper(){
-  while(RightBump.pressing() != true){
-    DTrain.drive(fwd, 100, velocityUnits::pct);
-  }
+  task yeah(dropHook);
   RightClamp.close();
+  wait(0.1, sec);
+  while(RDistance.objectDistance(mm) > 1){
+    DTrain.drive(reverse, 80, velocityUnits::pct);
+  }
+  RightClamp.open();
+  Hook.spinFor(fwd, 0.75, rev, false);
+  DTrain.stop(hold);
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  wait(0.5, sec);
+  DTrain.stop(coast);
 }
 
 //this definitely won't work lmao
@@ -330,7 +339,7 @@ void skills(){
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
-  rightBluGPS();
+  rightBumper();
 }
 
 void driver(){
@@ -406,25 +415,18 @@ void driver(){
       LeftClamp.open();
     }
 
-    /*if(CurDrive.ButtonY.pressing()){
+    if(CurDrive.ButtonY.pressing()){
       RightClamp.close();
     }
     else{
       RightClamp.open();
-    }*/
+    }
 
     if(CurDrive.ButtonUp.pressing()){ //just for easy motor testing
       Motor.spin(fwd, 50, pct);
     }
     else{
       Motor.stop(coast);
-    }
-
-    if(RightBump.pressing()){
-      RightClamp.open();
-    }
-    else{
-      RightClamp.close();
     }
   }
 }
@@ -457,5 +459,6 @@ int main(){
     Brain.Screen.printAt(20, 120, "Right1 Temp: %f ℃", Right1.temperature(celsius));
     Brain.Screen.printAt(20, 140, "Right2 Temp: %f ℃", Right2.temperature(celsius));
     Brain.Screen.printAt(20, 160, "Right3 Temp: %f ℃", Right3.temperature(celsius));
+    Brain.Screen.printAt(20, 180, "RDistance: %f", RDistance.objectDistance(mm));
   }
 }
