@@ -318,7 +318,7 @@ void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for 
   RRelease.close();
 }
 
-void rightBumper(){
+void rightDistance(){
   task yeah(dropHook);
   RightClamp.close();
   wait(0.1, sec);
@@ -339,7 +339,7 @@ void skills(){
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
-  rightBumper();
+  rightDistance();
 }
 
 void driver(){
