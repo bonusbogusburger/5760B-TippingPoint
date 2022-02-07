@@ -292,7 +292,7 @@ int driveToYTask(){
   return yp;
 }
 
-//autonomous routines
+//abuncha autonomous routines
 void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for competition. mainly for testing)
   Inertia.setHeading(90, deg);
   RightClamp.close();
@@ -325,6 +325,7 @@ void rightDistance(){
   while(RDistance.objectDistance(mm) > 1){
     DTrain.drive(reverse, 80, velocityUnits::pct);
   }
+  wait(0.1, sec);
   RightClamp.open();
   Hook.spinFor(fwd, 0.75, rev, false);
   DTrain.stop(hold);
@@ -333,13 +334,67 @@ void rightDistance(){
   DTrain.stop(coast);
 }
 
+void rightTime(){ //thank you for commenting tanner
+  //begin autonomous
+  task yeah(dropHook);
+  wait(0.5, sec);
+  RightClamp.close();
+
+  //drive into goal
+  DTrain.drive(reverse, 100, velocityUnits::pct);
+  wait(1.025, sec);
+  RightClamp.open();
+  DTrain.stop(brake);
+  Hook.spinFor(fwd, 0.5, rev);
+  wait(0.15, sec);
+
+  //move with goal
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  wait(0.5, sec);
+  DTrain.stop(hold);
+
+  //tur and prep for middle goal
+  speedForGroup(Left, fwd, 1.1, 50, false);
+  speedForGroup(Right, reverse, 1.1, 50, false);
+  RRelease.open();
+  IL.spinFor(fwd, 4.95, rev);
+  wait(0.75, sec);
+  Left.stop(brake);
+  Right.stop(brake);
+  RRelease.close();
+
+  //drive into middle goal
+  DTrain.drive(fwd, 70, velocityUnits::pct);
+  wait(0.95, sec);
+  DTrain.stop(brake);
+  wait(1.2, sec);
+
+  //pick up middle goal
+  IL.spinFor(reverse, 1.5, rev, false);
+  DTrain.stop(brake);
+  wait(0.6, sec);
+
+  //back up with middle goal
+  DTrain.drive(reverse, 100, velocityUnits::pct);
+  wait(0.95, sec);
+  DTrain.stop(brake);
+
+  //drop off middle goal
+
+
+  //turn to alliance goal
+
+
+  //deposit rings
+}
+
 //this definitely won't work lmao
 void skills(){
 
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
-  rightDistance();
+  rightTime();
 }
 
 void driver(){
