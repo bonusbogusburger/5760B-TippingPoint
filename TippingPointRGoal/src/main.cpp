@@ -43,7 +43,6 @@ drivetrain DTrain(Left, Right);
 motor IL(PORT21, ratio18_1,true);
 motor Hook(PORT16);
 motor Motor(PORT17);
-distance RDistance(PORT5);
 
 //define sensors
 gps GPS(PORT5); //Midpoint of GPS tape about 10 inches high
@@ -53,6 +52,7 @@ inertial Inertia(PORT11);
 vision Vision(PORT17);
 triport ThreeWirePort = vex::triport( vex::PORT22 );
 vex::limit HookLimit = vex::limit(ThreeWirePort.A);
+distance LDistance(PORT5);
 
 //Switch between 2 different controllers for driver control (refer to the jank function graveyard)
 controller CurDrive = Controller1;
@@ -322,7 +322,7 @@ void rightDistance(){
   task yeah(dropHook);
   RightClamp.close();
   wait(0.1, sec);
-  while(RDistance.objectDistance(mm) > 1){
+  while(LDistance.objectDistance(mm) > 1){
     DTrain.drive(reverse, 80, velocityUnits::pct);
   }
   wait(0.1, sec);
@@ -334,6 +334,14 @@ void rightDistance(){
   DTrain.stop(coast);
 }
 
+double timee = 0;
+int timeLimit(){
+  timee = 0;
+  wait(1, sec);
+  timee = 1.7;
+  return 1;
+}
+
 void rightTime(){ //thank you for commenting tanner
   //begin autonomous
   task yeah(dropHook);
@@ -342,7 +350,7 @@ void rightTime(){ //thank you for commenting tanner
 
   //drive into goal
   DTrain.drive(reverse, 100, velocityUnits::pct);
-  wait(1.025, sec);
+  wait(1.035, sec);
   RightClamp.open();
   DTrain.stop(brake);
   Hook.spinFor(fwd, 0.5, rev);
@@ -353,7 +361,25 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.5, sec);
   DTrain.stop(hold);
 
-  //tur and prep for middle goal
+  //turn and prep for middle goal w/ left claw
+  LeftClamp.close();
+  while(LDistance.objectDistance(mm) > 565){
+    speedForGroup(Right, fwd, 0.3, 50, false);
+    speedForGroup(Left, reverse, 0.3, 50);
+  }
+  DTrain.stop(brake);
+  wait(0.1, sec);
+
+  //drive to grab goal
+  wait(0.05, sec);
+  task god(timeLimit);
+  while(LDistance.objectDistance(mm) > 100 or timee != 1){
+    DTrain.drive(reverse, 80, velocityUnits::pct);
+  }
+  LeftClamp.open();
+  DTrain.stop(hold);
+
+  /*//tur and prep for middle goal w/ arms
   speedForGroup(Left, fwd, 1.1, 50, false);
   speedForGroup(Right, reverse, 1.1, 50, false);
   RRelease.open();
@@ -377,7 +403,7 @@ void rightTime(){ //thank you for commenting tanner
   //back up with middle goal
   DTrain.drive(reverse, 100, velocityUnits::pct);
   wait(0.95, sec);
-  DTrain.stop(brake);
+  DTrain.stop(brake);*/
 
   //drop off middle goal
 
@@ -386,6 +412,23 @@ void rightTime(){ //thank you for commenting tanner
 
 
   //deposit rings
+}
+
+void leftDistance(){
+  task yeah(dropHook);
+  wait(3, sec);
+  LeftClamp.close();
+
+  while(LDistance.objectDistance(mm) > 3){
+    DTrain.drive(reverse, 100, velocityUnits::pct);
+  }
+  LeftClamp.open();
+  wait(0.25, sec);
+  DTrain.stop(brake);
+
+  DTrain.drive(fwd, 80, velocityUnits::pct);
+  wait(0.5, sec);
+  DTrain.stop(brake);
 }
 
 //this definitely won't work lmao
@@ -514,6 +557,6 @@ int main(){
     Brain.Screen.printAt(20, 120, "Right1 Temp: %f ℃", Right1.temperature(celsius));
     Brain.Screen.printAt(20, 140, "Right2 Temp: %f ℃", Right2.temperature(celsius));
     Brain.Screen.printAt(20, 160, "Right3 Temp: %f ℃", Right3.temperature(celsius));
-    Brain.Screen.printAt(20, 180, "RDistance: %f", RDistance.objectDistance(mm));
+    Brain.Screen.printAt(20, 180, "LDistance: %f", LDistance.objectDistance(mm));
   }
 }
