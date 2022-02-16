@@ -31,9 +31,9 @@ controller Controller1;
 controller Controller2;
 
 //define motors
-motor Left1(PORT18, ratio18_1, false);
-motor Left2(PORT10 , ratio18_1, true);
-motor Left3(PORT7, ratio18_1, true);
+motor Left1(PORT5, ratio18_1, false);
+motor Left2(PORT6 , ratio18_1, true);
+motor Left3(PORT10, ratio18_1, true);  //orignally port 17
 motor Right1(PORT14, ratio18_1, true);
 motor Right2(PORT20, ratio18_1, false);
 motor Right3(PORT13, ratio18_1, false);
@@ -337,15 +337,15 @@ void rightDistance(){
 double timee = 0;
 int timeLimit(){
   timee = 0;
-  wait(1, sec);
-  timee = 1.7;
+  wait(1.7, sec);
+  timee = 1;
   return 1;
 }
 
 void rightTime(){ //thank you for commenting tanner
   //begin autonomous
   task yeah(dropHook);
-  wait(0.5, sec);
+  wait(0.4, sec);
   RightClamp.close();
 
   //drive into goal
@@ -353,7 +353,7 @@ void rightTime(){ //thank you for commenting tanner
   wait(1.035, sec);
   RightClamp.open();
   DTrain.stop(brake);
-  Hook.spinFor(fwd, 0.5, rev);
+  Hook.spinFor(fwd, 0.05, rev);
   wait(0.15, sec);
 
   //move with goal
@@ -361,23 +361,31 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.5, sec);
   DTrain.stop(hold);
 
-  //turn and prep for middle goal w/ left claw
-  LeftClamp.close();
-  while(LDistance.objectDistance(mm) > 565){
-    speedForGroup(Right, fwd, 0.3, 50, false);
-    speedForGroup(Left, reverse, 0.3, 50);
-  }
+  //turn and prep for middle goal w/ left claw                   //doesn't turn with >, infinite turns with <
+  //LeftClamp.close();
+  //while(LDistance.objectDistance(mm) < 565){
+ //   speedForGroup(Right, fwd, 0.3, 50, false);
+ //   speedForGroup(Left, reverse, 0.3, 50);
+ // }
+  speedForGroup(Right, fwd, 0.35, 50, false);
+  speedForGroup(Left, reverse, 0.35, 50);
   DTrain.stop(brake);
   wait(0.1, sec);
 
   //drive to grab goal
   wait(0.05, sec);
-  task god(timeLimit);
-  while(LDistance.objectDistance(mm) > 100 or timee != 1){
-    DTrain.drive(reverse, 80, velocityUnits::pct);
-  }
+  //task god(timeLimit);
+  //while(LDistance.objectDistance(mm) > 100 or timee != 1){           //runs infinitely 
+    //Hook.spin(reverse, 50, pct);
+    //DTrain.drive(reverse, 80, velocityUnits::pct);
+  //}
+  DTrain.drive(reverse, 70, velocityUnits::pct);
+  wait(1.0, sec);
+  DTrain.stop(brake);
+  wait(0.75, sec);
   LeftClamp.open();
   DTrain.stop(hold);
+  wait(0.25, sec);
 
   /*//tur and prep for middle goal w/ arms
   speedForGroup(Left, fwd, 1.1, 50, false);
@@ -398,18 +406,20 @@ void rightTime(){ //thank you for commenting tanner
   //pick up middle goal
   IL.spinFor(reverse, 1.5, rev, false);
   DTrain.stop(brake);
-  wait(0.6, sec);
+  wait(0.6, sec);*/
 
   //back up with middle goal
-  DTrain.drive(reverse, 100, velocityUnits::pct);
-  wait(0.95, sec);
-  DTrain.stop(brake);*/
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  wait(1.4, sec);
+  DTrain.stop(brake);
 
   //drop off middle goal
 
 
   //turn to alliance goal
-
+  speedForGroup(Right, fwd, 0.3, 50, false);
+  speedForGroup(Left, reverse, 0.3, 50);
+  DTrain.stop(brake);
 
   //deposit rings
 }
