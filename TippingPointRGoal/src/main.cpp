@@ -379,6 +379,8 @@ void rightTime(){ //thank you for commenting tanner
     DTrain.drive(reverse, 80, velocityUnits::pct);
   }
   LeftClamp.open();
+  Hook.spin(fwd, 100, pct);
+  wait(0.1, sec);
 
   /*//tur and prep for middle goal w/ arms
   speedForGroup(Left, fwd, 1.1, 50, false);
@@ -403,15 +405,15 @@ void rightTime(){ //thank you for commenting tanner
 
   //back up with middle goal
   DTrain.drive(fwd, 100, velocityUnits::pct);
-  wait(1.4, sec);
+  wait(1.55, sec);
   DTrain.stop(brake);
 
   //drop off middle goal
 
 
   //turn to alliance goal
-  speedForGroup(Right, fwd, 0.3, 50, false);
-  speedForGroup(Left, reverse, 0.3, 50);
+  speedForGroup(Right, fwd, 0.5, 50, false);
+  speedForGroup(Left, reverse, 0.5, 50);
   DTrain.stop(brake);
 
   //deposit rings
