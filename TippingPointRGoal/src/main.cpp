@@ -375,12 +375,12 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.05, sec);
   task god(timeLimit);
   LeftClamp.close();
-  while(DistanceL.objectDistance(mm) > 500 or timee != 1){           //runs infinitely 
-    DTrain.drive(reverse, 80, velocityUnits::pct);
-  }
+  DTrain.drive(reverse, 80, velocityUnits::pct);
+  wait(1, sec);
   LeftClamp.open();
-  Hook.spin(fwd, 100, pct);
-  wait(0.1, sec);
+  DTrain.drive(reverse, 80, velocityUnits::pct);
+  wait(0.2, sec);
+  Hook.spinFor(fwd, 0.5, rev, false);
 
   /*//tur and prep for middle goal w/ arms
   speedForGroup(Left, fwd, 1.1, 50, false);
@@ -404,8 +404,8 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.6, sec);*/
 
   //back up with middle goal
-  DTrain.drive(fwd, 100, velocityUnits::pct);
-  wait(1.55, sec);
+  DTrain.drive(fwd, 80, velocityUnits::pct);
+  wait(1.5, sec);
   DTrain.stop(brake);
 
   //drop off middle goal
