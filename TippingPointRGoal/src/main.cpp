@@ -45,7 +45,7 @@ motor Hook(PORT16);
 motor Motor(PORT17);
 
 //define sensors
-gps GPS(PORT5); //Midpoint of GPS tape about 10 inches high
+gps GPS(PORT9); //Midpoint of GPS tape about 10 inches high
 distance DistanceL(PORT18);
 distance DistanceR(PORT19);
 inertial Inertia(PORT11);
@@ -360,12 +360,7 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.5, sec);
   DTrain.stop(hold);
 
-  //turn and prep for middle goal w/ left claw                   //doesn't turn with >, infinite turns with <
-  //LeftClamp.close();
-  //while(LDistance.objectDistance(mm) < 565){
- //   speedForGroup(Right, fwd, 0.3, 50, false);
- //   speedForGroup(Left, reverse, 0.3, 50);
- // }
+  //turn and prep for middle goal w/ left claw
   speedForGroup(Right, fwd, 0.35, 50, false);
   speedForGroup(Left, reverse, 0.35, 50);
   DTrain.stop(brake);
@@ -382,17 +377,7 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.2, sec);
   Hook.spinFor(fwd, 0.5, rev, false);
 
-  /*//tur and prep for middle goal w/ arms
-  speedForGroup(Left, fwd, 1.1, 50, false);
-  speedForGroup(Right, reverse, 1.1, 50, false);
-  RRelease.open();
-  IL.spinFor(fwd, 4.95, rev);
-  wait(0.75, sec);
-  Left.stop(brake);
-  Right.stop(brake);
-  RRelease.close();
-
-  //drive into middle goal
+  /*//drive into middle goal
   DTrain.drive(fwd, 70, velocityUnits::pct);
   wait(0.95, sec);
   DTrain.stop(brake);
@@ -412,8 +397,8 @@ void rightTime(){ //thank you for commenting tanner
 
 
   //turn to alliance goal
-  speedForGroup(Right, fwd, 0.5, 50, false);
-  speedForGroup(Left, reverse, 0.5, 50);
+  speedForGroup(Right, fwd, 0.422, 50, false);
+  speedForGroup(Left, reverse, 0.422, 50);
   DTrain.stop(brake);
 
   //deposit rings
@@ -436,13 +421,30 @@ void leftDistance(){
   DTrain.stop(brake);
 }
 
-//this definitely won't work lmao
 void skills(){
-
+  DTrain.drive(reverse, 100, velocityUnits::pct);
+  wait(2, sec);
+  DTrain.stop(hold);
+  /*Left.spin(reverse, 10, pct);
+  Right.spin(fwd, 10, pct);
+  wait(2, sec);*/
+  while(GPS.heading() > 45.5){  //50.5 - 50.58
+    Left.spin(reverse, 15, pct);
+    Right.spin(fwd, 15, pct);
+  }
+  DTrain.stop(hold);
+  task drp(dropHook);
+  LeftClamp.close();
+  wait(1.2, sec);
+  while(DistanceL.objectDistance(mm) > 5){
+    DTrain.drive(reverse, 50, velocityUnits::pct);
+  }
+  DTrain.stop(hold);
+  LeftClamp.open();
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
-  rightTime();
+  skills();
 }
 
 void driver(){
