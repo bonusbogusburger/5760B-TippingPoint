@@ -1,4 +1,4 @@
-// ---- START VEXCODE CONFIGURED DEVICES ----
+ // ---- START VEXCODE CONFIGURED DEVICES ----
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
 // MotorGroup3          motor_group   3, 5            
@@ -15,6 +15,7 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
+//welcome to hell!
 #include "vex.h"
 #include <iostream>
 #include <math.h>
@@ -211,12 +212,12 @@ int dropHook(){ //task to drop the hook
   return 0;
 }
 
-//Super Cool GPS Functions
+//Super Cool GPS Functions that maybe work but maybe don't work
 //prototype (i have no idea if this works)
-void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angle it needs to turn in otder to drive to a desired location
+void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angle it needs to turn in order to drive to a desired location
   double deltaX = xFinal - GPS.xPosition(mm);
   double deltaY = yFinal - GPS.yPosition(mm);
-  double turnAngle = atan(deltaY/deltaX)*toDegrees; //trigonometry! my worst math unit!
+  double turnAngle = atan(deltaY/deltaX)*toDegrees; //trigonometry! Maxwell would be proud
   double driveDistance = sqrt((deltaX*deltaX) + (deltaY*deltaY));
   if(deltaY < 0){
     turnAngle += 180;
@@ -292,53 +293,14 @@ int driveToYTask(){
 }
 
 //abuncha autonomous routines
-void rightBluGPS(){ //blue right side with GPS sensor (WIP, not recommended for competition. mainly for testing)
-  Inertia.setHeading(90, deg);
-  RightClamp.close();
-  wait(1.5, sec);
-  task yeah(dropHook);
-  wait(1.3, sec);
-  driveToX(-1.3, reverse, 100);
-  RightClamp.open();
-  DTrain.stop(hold);
-  wait(0.2, sec);
-  Hook.rotateFor(fwd, 2, rev, false);
-  driveToX(-9.5, fwd, 100);
-  DTrain.stop(hold);
-  wait(0.5, sec);
-  RRelease.open();
-  IL.spinFor(fwd, 7, rev, false);
-  while(GPS.heading() < 250){
-    Left.spin(fwd, 25, pct);
-    Right.spin(reverse, 25, pct);
-  }
-  DTrain.stop(brake);
-  wait(2, sec);
-  RRelease.close();
-}
 
-void rightDistance(){
-  task yeah(dropHook);
-  RightClamp.close();
-  wait(0.1, sec);
-  while(DistanceL.objectDistance(mm) > 1){
-    DTrain.drive(reverse, 80, velocityUnits::pct);
-  }
-  wait(0.1, sec);
-  RightClamp.open();
-  Hook.spinFor(fwd, 0.75, rev, false);
-  DTrain.stop(hold);
-  DTrain.drive(fwd, 100, velocityUnits::pct);
-  wait(0.5, sec);
-  DTrain.stop(coast);
-}
-
-double timee = 0;                 //+amon gus (the rock eyebrow raise)*taco bell ring too
-int timeLimit(){
+double timee = 0; //+amon gus (the rock eyebrow raise)*taco bell ring too
+double timeTo = 0;
+int timeLimit(){ //task that sets a time limit
   timee = 0;
-  wait(1.2, sec);
+  wait(timeTo, sec);
   timee = 1;
-  return 1;
+  return timee;
 }
 
 void rightTime(){ //thank you for commenting tanner
@@ -349,8 +311,9 @@ void rightTime(){ //thank you for commenting tanner
 
   //drive into goal
   DTrain.drive(reverse, 100, velocityUnits::pct);
-  wait(1.035, sec);
+  wait(1, sec);
   RightClamp.open();
+  wait(0.035, sec);
   DTrain.stop(brake);
   Hook.spinFor(fwd, 0.05, rev);
   wait(0.15, sec);
@@ -367,26 +330,16 @@ void rightTime(){ //thank you for commenting tanner
   wait(0.1, sec);
 
   //drive to grab goal
+  timeTo = 0.84;
   wait(0.05, sec);
   task god(timeLimit);
   LeftClamp.close();
   DTrain.drive(reverse, 80, velocityUnits::pct);
-  wait(1, sec);
+  wait(0.7, sec);
   LeftClamp.open();
   DTrain.drive(reverse, 80, velocityUnits::pct);
   wait(0.2, sec);
   Hook.spinFor(fwd, 0.5, rev, false);
-
-  /*//drive into middle goal
-  DTrain.drive(fwd, 70, velocityUnits::pct);
-  wait(0.95, sec);
-  DTrain.stop(brake);
-  wait(1.2, sec);
-
-  //pick up middle goal
-  IL.spinFor(reverse, 1.5, rev, false);
-  DTrain.stop(brake);
-  wait(0.6, sec);*/
 
   //back up with middle goal
   DTrain.drive(fwd, 80, velocityUnits::pct);
@@ -404,23 +357,6 @@ void rightTime(){ //thank you for commenting tanner
   //deposit rings
 }
 
-void leftDistance(){
-  task yeah(dropHook);
-  wait(3, sec);
-  LeftClamp.close();
-
-  while(DistanceL.objectDistance(mm) > 3){
-    DTrain.drive(reverse, 100, velocityUnits::pct);
-  }
-  LeftClamp.open();
-  wait(0.25, sec);
-  DTrain.stop(brake);
-
-  DTrain.drive(fwd, 80, velocityUnits::pct);
-  wait(0.5, sec);
-  DTrain.stop(brake);
-}
-
 void skills(){
   DTrain.drive(reverse, 100, velocityUnits::pct);
   wait(2, sec);
@@ -433,7 +369,7 @@ void skills(){
     Right.spin(fwd, 15, pct);
   }
   DTrain.stop(hold);
-  task drp(dropHook);
+  task drop(dropHook);
   LeftClamp.close();
   wait(1.2, sec);
   while(DistanceL.objectDistance(mm) > 5){
@@ -444,7 +380,10 @@ void skills(){
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
-  skills();
+  RRelease.open();
+  RightClamp.open();
+  LeftClamp.close();
+  rightTime();
 }
 
 void driver(){
@@ -500,18 +439,6 @@ void driver(){
       Hook.stop(hold);
     }
     }
-    /*if(CurDrive.ButtonB.pressing()){
-      Hook.spin(fwd, 100, pct);
-    }
-    else if(CurDrive.ButtonDown.pressing()){
-      Hook.spin(reverse, 100, pct);
-    }
-    else if(HookLimit.pressing()==0){
-      Hook.stop(hold);
-    }
-    else{
-      Hook.stop(hold);
-    }*/
 
     if(CurDrive.ButtonRight.pressing()){
       LeftClamp.close();
@@ -536,26 +463,16 @@ void driver(){
   }
 }
 
-int printGPS(){
-  wait(0.5, sec);
-  std::cout << GPS.xPosition(mm);
-  return 1;
-}
-
 int main(){
   // Initializing Robot Configuration. DO NOT REMOVE! (ok)
   vexcodeInit();
   GPS.calibrate();
   Inertia.calibrate();
   IL.setVelocity(100, pct);
-  Hook.setVelocity(100, pct);
-  RRelease.open();
-  RightClamp.open();
-  LeftClamp.close();
+  Hook.setVelocity(100, pct); 
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    task bruh(printGPS);
     Brain.Screen.printAt(20, 20, "GPS X: %f mm", GPS.xPosition(mm));
     Brain.Screen.printAt(20, 40, "GPS Gyro: %f degrees", GPS.heading(degrees));
     Brain.Screen.printAt(20, 60, "Left1 Temp: %f ℃", Left1.temperature(celsius));
