@@ -15,7 +15,6 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
-//welcome to hell!
 #include "vex.h"
 #include <iostream>
 #include <math.h>
@@ -46,15 +45,15 @@ motor Hook(PORT16);
 motor Motor(PORT17);
 
 //define sensors
-gps GPS(PORT9); //Midpoint of GPS tape about 10 inches high
+gps GPS(PORT9);
 distance DistanceL(PORT18);
 distance DistanceR(PORT19);
-inertial Inertia(PORT11);
+inertial Inertia(PORT2);
 vision Vision(PORT17);
 triport ThreeWirePort = vex::triport( vex::PORT22 );
 vex::limit HookLimit = vex::limit(ThreeWirePort.A);
 
-//Switch between 2 different controllers for driver control (refer to the jank function graveyard)
+//Switch between 2 different controllers for driver control
 controller CurDrive = Controller1;
 int vCurDrive = 1;
 
@@ -83,6 +82,7 @@ int gearShift(){
   return 1;
 }
 
+//Vision Sensor Testing
 void LineUpY(){
 Vision1.setBrightness(50);
 Vision1.setSignature(YGoal);
@@ -120,7 +120,7 @@ bool linedup = false;
   }
 }
 
-
+//PID Testing
 void PIDturnToValue(){
   while((Inertia.heading( rotationUnits::deg )>358) == 0)  {//turned right correct left
    if( 60 > Inertia.heading( rotationUnits::deg )){
@@ -153,6 +153,7 @@ void PIDstraight(){
   }
 }
 
+//Inertial Gyro Testing
 void TurnLeft(){
   Left.spin(reverse, 90, pct);  
   Right.spin(reverse, 90, pct);
@@ -191,7 +192,6 @@ void TurnRight(){
 }
 
 //spinFor but with speed to make autonomous less of a pain
-//i have learned that time-based spinFor actually uses speed but rotation-based doesn't???? ok
 void speedFor(motor Motor, directionType direct, double rotations, double speed, bool waitfor=true){
   Motor.setVelocity(speed, pct);
   Motor.spinFor(direct, rotations, rev, waitfor);
@@ -212,12 +212,12 @@ int dropHook(){ //task to drop the hook
   return 0;
 }
 
-//Super Cool GPS Functions that maybe work but maybe don't work
-//prototype (i have no idea if this works)
+//Super Cool GPS Functions
+//prototype 
 void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angle it needs to turn in order to drive to a desired location
   double deltaX = xFinal - GPS.xPosition(mm);
   double deltaY = yFinal - GPS.yPosition(mm);
-  double turnAngle = atan(deltaY/deltaX)*toDegrees; //trigonometry! Maxwell would be proud
+  double turnAngle = atan(deltaY/deltaX)*toDegrees; //trigonometry!
   double driveDistance = sqrt((deltaX*deltaX) + (deltaY*deltaY));
   if(deltaY < 0){
     turnAngle += 180;
@@ -229,7 +229,7 @@ void moveTo(double xFinal, double yFinal, double speed){ //robot calculates angl
   DTrain.driveFor(driveDistance, mm); //no clue if this'll work
 }
 
-//drive to GPS x or y coordinates (there's probably a much better way to go about this)
+//drive to GPS x or y coordinates
 double xp = 0;
 double yp = 0;
 double coordspeed = 0;
@@ -265,7 +265,7 @@ void dTCoordParams(double xpos, double ypos, directionType directio, double spee
   coorddirect = directio;
   coordspeed = speed;
 }
-int driveToXTask(){ //these are in case we want to make these non-blocking. this makes things less complicated trust me
+int driveToXTask(){ //these are in case we want to make these non-blocking
   if(xp - GPS.xPosition(inches) > 0){
     while(GPS.xPosition(inches) <= xp){
       DTrain.drive(coorddirect, coordspeed, velocityUnits::pct);
@@ -292,9 +292,8 @@ int driveToYTask(){
   return yp;
 }
 
-//abuncha autonomous routines
-
-double timee = 0; //+amon gus (the rock eyebrow raise)*taco bell ring too
+//autonomous routines
+double timee = 0; 
 double timeTo = 0;
 int timeLimit(){ //task that sets a time limit
   timee = 0;
@@ -303,7 +302,7 @@ int timeLimit(){ //task that sets a time limit
   return timee;
 }
 
-void rightTime(){ //thank you for commenting tanner
+void rightTime(){ //Be wary of rule SG4
   //begin autonomous
   task yeah(dropHook);
   wait(0.4, sec);
@@ -332,7 +331,7 @@ void rightTime(){ //thank you for commenting tanner
   //drive to grab goal
   timeTo = 0.84;
   wait(0.05, sec);
-  task god(timeLimit);
+  task god(timeLimit); //this does nothing but i'm scared to delete it
   LeftClamp.close();
   DTrain.drive(reverse, 80, velocityUnits::pct);
   wait(0.7, sec);
@@ -346,44 +345,100 @@ void rightTime(){ //thank you for commenting tanner
   wait(1.5, sec);
   DTrain.stop(brake);
 
-  //drop off middle goal
-
-
   //turn to alliance goal
   speedForGroup(Right, fwd, 0.422, 50, false);
   speedForGroup(Left, reverse, 0.422, 50);
   DTrain.stop(brake);
-
-  //deposit rings
 }
 
-void skills(){
+int dropLift(){ //non-blocking task that drops the lift
+  RRelease.open();
+  IL.spinFor(fwd, 7, rev);
+  RRelease.close();
+  return 1;
+}
+void skills(){ 
+  wait(1.5, sec); //calibration
+  //begin autonomous
+  task yeah(dropHook);
+  wait(0.4, sec);
+  RightClamp.close();
+
+  //drive into goal
   DTrain.drive(reverse, 100, velocityUnits::pct);
-  wait(2, sec);
+  wait(1, sec);
+  RightClamp.open();
+  wait(0.035, sec);
+  DTrain.stop(brake);
+  Hook.spinFor(fwd, 0.05, rev);
+  wait(0.15, sec);
+
+  //move with goal
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  wait(0.5, sec);
   DTrain.stop(hold);
-  /*Left.spin(reverse, 10, pct);
-  Right.spin(fwd, 10, pct);
-  wait(2, sec);*/
-  while(GPS.heading() > 45.5){  //50.5 - 50.58
-    Left.spin(reverse, 15, pct);
-    Right.spin(fwd, 15, pct);
-  }
-  DTrain.stop(hold);
-  task drop(dropHook);
+
+  //turn and prep for middle goal w/ left claw
+  speedForGroup(Right, fwd, 0.35, 50, false);
+  speedForGroup(Left, reverse, 0.35, 50);
+  DTrain.stop(brake);
+  wait(0.1, sec);
+
+  //drive to grab goal
+  wait(0.05, sec);
   LeftClamp.close();
-  wait(1.2, sec);
-  while(DistanceL.objectDistance(mm) > 5){
-    DTrain.drive(reverse, 50, velocityUnits::pct);
-  }
-  DTrain.stop(hold);
+  DTrain.drive(reverse, 80, velocityUnits::pct);
+  wait(0.7, sec);
   LeftClamp.open();
+  DTrain.drive(reverse, 80, velocityUnits::pct);
+  wait(0.2, sec);
+  Hook.spinFor(fwd, 0.5, rev, false);
+  DTrain.stop(brake);
+
+  //back up with middle goal
+  DTrain.drive(fwd, 80, velocityUnits::pct);
+  wait(1.35, sec);
+  DTrain.stop(brake);
+  wait(0.5, sec);
+
+  //turn to alliance goal
+  task yah(dropLift);
+  speedForGroup(Right, fwd, 0.285, 50, false);
+  speedForGroup(Left, reverse, 0.285, 50);
+  DTrain.stop(brake);
+  DTrain.drive(reverse, 25, velocityUnits::pct);
+  wait(0.3, sec);
+  DTrain.stop(brake);
+  wait(1.5, sec);
+
+  //grab alliance goal, turn to other side
+  DTrain.drive(fwd, 50, velocityUnits::pct);
+  wait(1.3, sec);
+  IL.setVelocity(50, pct);
+  IL.spinFor(reverse, 2.25, rev, false);
+  DTrain.drive(reverse, 30, velocityUnits::pct);
+  wait(0.15, sec);
+  DTrain.stop(brake);
+  Right.spin(fwd, 25, pct);
+  Left.spin(reverse, 25, pct);
+  waitUntil(Inertia.heading(degrees) < 180);
+  DTrain.stop(hold);
+  wait(1, sec);
+
+  //Pick up and drop rings while going to other side
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  IL.spin(fwd, 100, pct);
+  wait(1.4, sec);
+  DTrain.stop(brake);
+  dropLift();
+
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
-  rightTime();
+  skills();
 }
 
 void driver(){
@@ -466,15 +521,16 @@ void driver(){
 int main(){
   // Initializing Robot Configuration. DO NOT REMOVE! (ok)
   vexcodeInit();
-  GPS.calibrate();
-  Inertia.calibrate();
   IL.setVelocity(100, pct);
   Hook.setVelocity(100, pct); 
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
   while(1){
-    Brain.Screen.printAt(20, 20, "GPS X: %f mm", GPS.xPosition(mm));
-    Brain.Screen.printAt(20, 40, "GPS Gyro: %f degrees", GPS.heading(degrees));
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setPenColor(white);
+    Brain.Screen.setFont(monoM);
+    Brain.Screen.printAt(20, 20, "Inertial: %f deg", Inertia.heading());
+    Brain.Screen.printAt(20, 40, "GPS Gyro: %f deg", GPS.heading(degrees));
     Brain.Screen.printAt(20, 60, "Left1 Temp: %f ℃", Left1.temperature(celsius));
     Brain.Screen.printAt(20, 80, "Left2 Temp: %f ℃", Left2.temperature(celsius));
     Brain.Screen.printAt(20, 100, "Left3 Temp: %f ℃", Left3.temperature(celsius));
@@ -482,5 +538,9 @@ int main(){
     Brain.Screen.printAt(20, 140, "Right2 Temp: %f ℃", Right2.temperature(celsius));
     Brain.Screen.printAt(20, 160, "Right3 Temp: %f ℃", Right3.temperature(celsius));
     Brain.Screen.printAt(20, 180, "LDistance: %f", DistanceL.objectDistance(mm));
+    Brain.Screen.setFont(propXXL);
+    Brain.Screen.setFillColor(red);
+    Brain.Screen.setPenColor(black);
+    Brain.Screen.printAt(280, 105, "5760B");
   }
 }
