@@ -302,6 +302,12 @@ int timeLimit(){ //task that sets a time limit
   return timee;
 }
 
+int dropLift(){ //non-blocking task that drops the lift from starting position
+  RRelease.open();
+  IL.spinFor(fwd, 7, rev);
+  RRelease.close();
+  return 1;
+}
 void rightTime(){ //Be wary of rule SG4
   //begin autonomous
   task yeah(dropHook);
@@ -329,9 +335,7 @@ void rightTime(){ //Be wary of rule SG4
   wait(0.1, sec);
 
   //drive to grab goal
-  timeTo = 0.84;
   wait(0.05, sec);
-  task god(timeLimit); //this does nothing but i'm scared to delete it
   LeftClamp.close();
   DTrain.drive(reverse, 80, velocityUnits::pct);
   wait(0.7, sec);
@@ -339,26 +343,36 @@ void rightTime(){ //Be wary of rule SG4
   DTrain.drive(reverse, 80, velocityUnits::pct);
   wait(0.2, sec);
   Hook.spinFor(fwd, 0.5, rev, false);
+  DTrain.stop(brake);
 
   //back up with middle goal
   DTrain.drive(fwd, 80, velocityUnits::pct);
-  wait(1.5, sec);
+  wait(1.35, sec);
   DTrain.stop(brake);
+  wait(0.5, sec);
 
   //turn to alliance goal
-  speedForGroup(Right, fwd, 0.422, 50, false);
-  speedForGroup(Left, reverse, 0.422, 50);
+  task yah(dropLift);
+  speedForGroup(Right, fwd, 0.285, 50, false);
+  speedForGroup(Left, reverse, 0.285, 50);
+  DTrain.stop(brake);
+  DTrain.drive(reverse, 25, velocityUnits::pct);
+  wait(0.3, sec);
+  DTrain.stop(brake);
+  wait(1.5, sec);
+
+  //grab alliance goal
+  DTrain.drive(fwd, 50, velocityUnits::pct);
+  wait(1.3, sec);
+  IL.setVelocity(50, pct);
+  IL.spinFor(reverse, 2.25, rev, false);
+  DTrain.drive(reverse, 30, velocityUnits::pct);
+  wait(0.125, sec);
   DTrain.stop(brake);
 }
 
-int dropLift(){ //non-blocking task that drops the lift
-  RRelease.open();
-  IL.spinFor(fwd, 7, rev);
-  RRelease.close();
-  return 1;
-}
 void skills(){ 
-  wait(1.5, sec); //calibration
+  wait(1.5, sec); //calibrate GPS and inertial
   //begin autonomous
   task yeah(dropHook);
   wait(0.4, sec);
@@ -417,32 +431,51 @@ void skills(){
   IL.setVelocity(50, pct);
   IL.spinFor(reverse, 2.25, rev, false);
   DTrain.drive(reverse, 30, velocityUnits::pct);
-  wait(0.15, sec);
+  wait(0.125, sec);
   DTrain.stop(brake);
   Right.spin(fwd, 25, pct);
   Left.spin(reverse, 25, pct);
-  waitUntil(Inertia.heading(degrees) < 180);
+  waitUntil(Inertia.heading(degrees) < 182);
   DTrain.stop(hold);
   wait(1, sec);
 
-  //Pick up and drop rings while going to other side
-  DTrain.drive(fwd, 100, velocityUnits::pct);
+  //Pick up, drop rings, drop goal, back up
+  DTrain.drive(fwd, 30, velocityUnits::pct);
   IL.spin(fwd, 100, pct);
-  wait(1.4, sec);
+  waitUntil(GPS.xPosition(inches) > 49);
   DTrain.stop(brake);
-  dropLift();
+  wait(0.5, sec);
+  /*RRelease.open();
+  IL.spin(reverse, 100, pct); //this releases tension on the ratchet
+  wait(1, sec);
+  IL.spin(fwd, 100, pct);
+  wait(3, sec);
+  RRelease.close();
+  IL.stop(hold);
+  DTrain.drive(reverse, 30, velocityUnits::pct);
+  wait(0.8, sec);
+  DTrain.stop(brake);
+  wait(0.5, sec);*/
 
+  //Turn and get red goal!!!
+  /*Left.spin(reverse, 25, pct);
+  Right.spin(fwd, 25, pct);
+  waitUntil(Inertia.heading(deg) < 90);
+  DTrain.stop(brake);*/
 }
 
 void auton(){ //plan is to use a limit switch/bumper/other sensor to select an autonomous routine before a match
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
-  skills();
+  rightTime();
 }
 
 void driver(){
   task jank(gearShift);
+  RRelease.open();
+  RightClamp.open();
+  LeftClamp.close();
   while(1){
     //drivetrain brake
      if(CurDrive.ButtonLeft.pressing()){
