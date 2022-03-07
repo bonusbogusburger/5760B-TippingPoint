@@ -304,7 +304,7 @@ int timeLimit(){ //task that sets a time limit
 
 int dropLift(){ //non-blocking task that drops the lift from starting position
   RRelease.open();
-  IL.spinFor(fwd, 7, rev);
+  IL.spinFor(fwd, 8, rev);
   RRelease.close();
   return 1;
 }
@@ -362,13 +362,34 @@ void rightTime(){ //Be wary of rule SG4
   wait(1.5, sec);
 
   //grab alliance goal
-  DTrain.drive(fwd, 50, velocityUnits::pct);
+  /*DTrain.drive(fwd, 50, velocityUnits::pct);
   wait(1.3, sec);
-  IL.setVelocity(50, pct);
+  IL.setVelocity(100, pct);
   IL.spinFor(reverse, 2.25, rev, false);
-  DTrain.drive(reverse, 30, velocityUnits::pct);
+  DTrain.drive(reverse, 60, velocityUnits::pct);
   wait(0.125, sec);
+  DTrain.stop(brake);*/
+}
+
+void leftTime(){
+  //begin autonomous
+  task yeah(dropHook);
+  wait(0.4, sec);
+  RightClamp.close();
+
+  //drive into goal
+  DTrain.drive(reverse, 100, velocityUnits::pct);
+  wait(1, sec);
+  RightClamp.open();
+  wait(0.035, sec);
   DTrain.stop(brake);
+  Hook.spinFor(fwd, 0.05, rev);
+  wait(0.15, sec);
+
+  //move with goal
+  DTrain.drive(fwd, 100, velocityUnits::pct);
+  wait(1.5, sec);
+  DTrain.stop(hold);
 }
 
 void skills(){ 
@@ -471,8 +492,25 @@ void auton(){ //plan is to use a limit switch/bumper/other sensor to select an a
   rightTime();
 }
 
+/*bool intake = false;
+int intakeToggle(){
+  while(1){
+    if(CurDrive.ButtonL1.pressing()){
+      wait(0.3, sec);
+      if(intake == false){
+        intake = true;
+      }
+      else if(intake == true){
+        intake = false;
+      }
+    }
+  }
+  return 1;
+}*/
 void driver(){
+  //intake = false;
   task jank(gearShift);
+  //task toggle(intakeToggle);
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();

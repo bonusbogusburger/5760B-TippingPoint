@@ -450,7 +450,7 @@ void skills(){
   DTrain.drive(fwd, 50, velocityUnits::pct);
   wait(1.3, sec);
   IL.setVelocity(50, pct);
-  IL.spinFor(reverse, 3, rev, false);
+  IL.spinFor(reverse, 2.25, rev, false);
   DTrain.drive(reverse, 30, velocityUnits::pct);
   wait(0.125, sec);
   DTrain.stop(brake);
@@ -463,8 +463,9 @@ void skills(){
   //Pick up, drop rings, drop goal, back up
   DTrain.drive(fwd, 30, velocityUnits::pct);
   IL.spin(fwd, 100, pct);
-  wait(10, sec);
+  waitUntil(GPS.xPosition(inches) > 49);
   DTrain.stop(brake);
+  wait(0.5, sec);
   /*RRelease.open();
   IL.spin(reverse, 100, pct); //this releases tension on the ratchet
   wait(1, sec);
@@ -488,28 +489,13 @@ void auton(){ //plan is to use a limit switch/bumper/other sensor to select an a
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
-  skills();
+  leftTime();
 }
 
-bool intake = false;
-int intakeToggle(){
-  while(1){
-    if(CurDrive.ButtonL1.pressing()){
-      wait(0.3, sec);
-      if(intake == false){
-        intake = true;
-      }
-      else if(intake == true){
-        intake = false;
-      }
-    }
-  }
-  return 1;
-}
 void driver(){
-  intake = false;
+  //intake = false;
   task jank(gearShift);
-  task toggle(intakeToggle);
+  //task toggle(intakeToggle);
   RRelease.open();
   RightClamp.open();
   LeftClamp.close();
@@ -524,7 +510,7 @@ void driver(){
     Right.spin(fwd, CurDrive.Axis2.position()*shift, pct);
     }
 
-    if(intake == true){
+    if(CurDrive.ButtonL1.pressing()){
       IL.spin(fwd, 100, pct);
     }
     else if(CurDrive.ButtonR1.pressing()){
