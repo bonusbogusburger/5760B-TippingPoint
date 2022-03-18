@@ -13,6 +13,8 @@
 //Welcome to T.R.I.S.T.A.N.2, Worlds Boogaloo
 #include "vex.h"
 #include <iostream>
+#include <math.h>
+#include <string>
 
 using namespace vex;
 
@@ -50,24 +52,28 @@ int speedSwitcher(){ //task that switches speed hallelujah
 }
 
 void driver(){
+  int lastStick = 0;
   while(1){
-    if(Controller.Axis3.position() > 90){
-      DTrain.drive(fwd, 100*speed, velocityUnits::pct);
+    Brain.Screen.clearLine(20, 60);
+    double stickTest = floor(Controller.Axis3.position()/10);
+    DTrain.drive(fwd, stickTest*10, velocityUnits::pct);
+    if(lastStick != stickTest){
+      Brain.Screen.printAt(20, 60, "ROOJSIFOINFDSFDSNFDS");
     }
-    else if(Controller.Axis3.position() < -90){
-      DTrain.drive(reverse, 100*speed, velocityUnits::pct);
-    }
-    else{
-      DTrain.stop(brake);
-    }
+    lastStick = stickTest;
   }
 }
 
 void auton(){
 }
+
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
+  while(1){
+    double stickTest = floor(Controller.Axis3.position()/10)*10;
+    Brain.Screen.printAt(20, 20, "Stick Value: %f", stickTest);
+  }
 }
