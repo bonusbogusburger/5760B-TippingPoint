@@ -53,43 +53,37 @@ int speedSwitcher(){ //task that switches speed hallelujah
 
 double stickTest3;
 double stickTest1;
-int time3 = 0;
-bool stopit = false;
-int timer3(){
-  time3 = 0;
-  while(1){
-    wait(1, msec);
-    time3 += 1;
-    if(stopit == true){
-      break;
-    }
-  }
-  return time3;
-}
+int timer3 = 0;
+int timediff = 0;
 void driver(){
   double lastStick3 = 0;
   double lastStick1 = 0;
   while(1){
     Brain.Screen.clearLine(20, 60);
-    stickTest3 = floor(Controller.Axis3.position()/10);
-    stickTest1 = floor(Controller.Axis1.position()/10);
+    stickTest3 = floor(Controller.Axis3.position()/10)*10;
+    stickTest1 = floor(Controller.Axis1.position()/10)*10;
+    wait(1, msec);
     if(stickTest3 != 0){
+      timer3 += 1;
+      timediff += 1;
       double mod = Controller.Axis1.position()*0.65;
-      Left.spin(fwd, stickTest3*10+mod, pct);
-      Right.spin(fwd, stickTest3*10-mod, pct);
+      Left.spin(fwd, stickTest3+mod, pct);
+      Right.spin(fwd, stickTest3-mod, pct);
       if(lastStick3 != stickTest3){
         std::cout.precision(3); //the next line has to be very long i am so sorry
-        std::cout << "Accelerated from " << lastStick3*10 << " to " << stickTest3*10 << " (GPS X: " << GPS.xPosition(inches) << " Y: " << GPS.yPosition(inches) << ") " << time3 << "ms" << std::endl;
-        time3 = 0;
+        std::cout << "Accelerated from " << lastStick3 << " to " << stickTest3 << " (GPS X: " << GPS.xPosition(inches) << " Y: " << GPS.yPosition(inches) << ") " << timediff << "ms " << timer3 << "ms" << std::endl;
+        timediff = 0;
       }
-      lastStick3 = stickTest3;
+      lastStick3 = stickTest3; 
     }
     else if(stickTest1 != 0){
-      Left.spin(fwd, stickTest1*10, pct);
-      Right.spin(reverse, stickTest1*10, pct);
+      Left.spin(fwd, stickTest1, pct);
+      Right.spin(reverse, stickTest1, pct);
     }
     else{
-      stopit = true;
+      lastStick3 = 0;
+      timediff = 0;
+      timer3 = 0;
       DTrain.stop(brake);
     }
   }
