@@ -55,32 +55,57 @@ double stickTest3;
 double stickTest1;
 int timer3 = 0;
 int timediff = 0;
+int stoptime = 0;
+double lastStick3;
+double lastStick1;
+int msec3(){
+  while(floor(Controller.Axis3.position()/10)*10 != 0){
+    wait(1, msec);
+    timer3 += 1;
+    timediff += 1;
+  }
+  return 1;
+}
+int stick3time(){
+  std::cout << "wait(" << stoptime << ", msec);" << std::endl;
+  task m3(msec3);
+  while(floor(Controller.Axis3.position()/10)*10 != 0){
+    stickTest3 = floor(Controller.Axis3.position()/10)*10;
+    double mod = Controller.Axis1.position()*0.65;
+    Left.spin(fwd, stickTest3+mod, pct);
+    Right.spin(fwd, stickTest3-mod, pct);
+    if(stickTest3 == 0){
+      void;
+    }
+    else if(lastStick3 != stickTest3){
+      std::cout.precision(3); //the next line has to be very long i am so sorry
+      //std::cout << "Accelerated from " << lastStick3 << " to " << stickTest3 << " (GPS X: " << GPS.xPosition(inches) << " Y: " << GPS.yPosition(inches) << ") " << timediff << "ms " << timer3 << "ms" << std::endl;
+      std::cout << "wait(" << timediff << ", msec);" << std::endl;
+      std::cout << "DTrain.drive(fwd, " << stickTest3 << ", velocityUnits::pct);" << std::endl;
+      timediff = 0;
+    }
+    lastStick3 = stickTest3;
+  }
+  std::cout << "wait(" << timediff << ", msec);" << std::endl;
+  std::cout << "DTrain.stop(brake);" << std::endl;
+  return 1;
+}
 void driver(){
   double lastStick3 = 0;
   double lastStick1 = 0;
   while(1){
-    Brain.Screen.clearLine(20, 60);
     stickTest3 = floor(Controller.Axis3.position()/10)*10;
     stickTest1 = floor(Controller.Axis1.position()/10)*10;
-    wait(1, msec);
     if(stickTest3 != 0){
-      timer3 += 1;
-      timediff += 1;
-      double mod = Controller.Axis1.position()*0.65;
-      Left.spin(fwd, stickTest3+mod, pct);
-      Right.spin(fwd, stickTest3-mod, pct);
-      if(lastStick3 != stickTest3){
-        std::cout.precision(3); //the next line has to be very long i am so sorry
-        std::cout << "Accelerated from " << lastStick3 << " to " << stickTest3 << " (GPS X: " << GPS.xPosition(inches) << " Y: " << GPS.yPosition(inches) << ") " << timediff << "ms " << timer3 << "ms" << std::endl;
-        timediff = 0;
-      }
-      lastStick3 = stickTest3; 
+      stick3time();
     }
     else if(stickTest1 != 0){
       Left.spin(fwd, stickTest1, pct);
       Right.spin(reverse, stickTest1, pct);
     }
     else{
+      wait(1, msec);
+      stoptime += 1;
       lastStick3 = 0;
       timediff = 0;
       timer3 = 0;
