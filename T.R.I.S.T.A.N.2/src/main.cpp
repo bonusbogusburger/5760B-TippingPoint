@@ -54,7 +54,7 @@ int speedSwitcher(){ //task that switches speed hallelujah
 
 void speedForGroup(motor_group MotorGroup, directionType direct, double rotations, double speed, bool waitfor=true){
   MotorGroup.setVelocity(speed, pct);
-  GDTrain.resetPosition();
+  MotorGroup.resetPosition();
   MotorGroup.spin(fwd);
   waitUntil(fabs(MotorGroup.position(rev)) >= fabs(rotations));
   //MotorGroup.spinFor(direct, rotations, rev, waitfor);
@@ -114,10 +114,7 @@ int stick3rev(){ //pretty accurate but for slow accelerations, things start to g
     }
     if(lastStick3 != stickTest3){
       std::cout.precision(3); //the next line has to be very long i am so sorry
-      //std::cout << "Accelerated from " << lastStick3 << " to " << stickTest3 << " (GPS X: " << GPS.xPosition(inches) << " Y: " << GPS.yPosition(inches) << ") " << std::endl;
       double DTrainrev = (Left.position(rev)+Right.position(rev))/2; 
-      //std::cout << "speedForGroup(Left, fwd, " << DTrainrev << ", " << lastStick3 << ", false);" << std::endl;
-      //std::cout << "speedForGroup(Right, fwd, " << DTrainrev << ", " << lastStick3 << ");" << std::endl;
       std::cout << "speedForGroup(GDTrain, fwd, " << DTrainrev << ", " << lastStick3 << ");" << std::endl;
       Left.resetPosition();
       Right.resetPosition();
@@ -154,10 +151,40 @@ int stick1gyro(){
   std::cout << "DTrain.stop(brake);" << std::endl;
   return 1;
 }
+int stick1rev(){
+  std::cout << "wait(" << stopTimer << ", msec);" << std::endl;
+  stopTimer = 0;
+  double DTrainrev;
+  Left.resetPosition();
+  Right.resetPosition();
+  while(floor(Controller.Axis1.position()/10)*10 != 0){
+    stickTest1 = floor(Controller.Axis1.position()/10)*10;
+    Left.spin(fwd, stickTest1, pct);
+    Right.spin(reverse, stickTest1, pct);
+    if(stickTest1 == 0){
+      void;
+    }
+    if(lastStick1 != stickTest1){
+      DTrainrev = (Left.position(rev)+Right.position(rev))/2; 
+      std::cout.precision(3); //the next line has to be very long i am so sorry
+      std::cout << "speedForGroup(Left, fwd, " << DTrainrev << ", " << lastStick1 << ", false);" << std::endl;
+      std::cout << "speedForGroup(Right, reverse, " << DTrainrev << ", " << lastStick1 << ");" << std::endl;
+      Left.resetPosition();
+      Right.resetPosition();
+    }
+    lastStick1 = stickTest1;
+  }
+  DTrainrev = (Left.position(rev)+Right.position(rev))/2;
+  std::cout << "speedForGroup(Left, fwd, " << DTrainrev << ", " << lastStick1 << ", false);" << std::endl;
+  std::cout << "speedForGroup(Right, reverse, " << DTrainrev << ", " << lastStick1 << ");" << std::endl;
+  std::cout << "DTrain.stop(brake);" << std::endl;
+  return 1;
+}
 void driver(){
-  std::cout << "wait(2, sec)" << std::endl;
   double lastStick3 = 0;
   double lastStick1 = 0;
+  wait(2, sec); //calibration
+  std::cout << "wait(2, sec);" << std::endl;
   while(1){
     stickTest3 = floor(Controller.Axis3.position()/10)*10;
     stickTest1 = floor(Controller.Axis1.position()/10)*10;
@@ -165,7 +192,7 @@ void driver(){
       stick3rev();
     }
     else if(stickTest1 != 0){
-      stick1gyro();
+      stick1rev();
     }
     else{
       wait(1, msec);
@@ -177,53 +204,95 @@ void driver(){
 }
 
 void auton(){
-wait(1861, msec);
+wait(2, sec);
+wait(0, msec);
 speedForGroup(GDTrain, fwd, 0, 0);
-speedForGroup(GDTrain, fwd, 0.166, 20);
-speedForGroup(GDTrain, fwd, 0.186, 30);
-speedForGroup(GDTrain, fwd, 0.055, 40);
-speedForGroup(GDTrain, fwd, 0.025, 30);
-speedForGroup(GDTrain, fwd, 0.36, 40);
-speedForGroup(GDTrain, fwd, 0.535, 50);
-speedForGroup(GDTrain, fwd, 0.374, 60);
-speedForGroup(GDTrain, fwd, 0.422, 70);
-speedForGroup(GDTrain, fwd, 0.756, 80);
-speedForGroup(GDTrain, fwd, 0.539, 90);
-speedForGroup(GDTrain, fwd, 1.85, 100);
-speedForGroup(GDTrain, fwd, 0.167, 90);
+speedForGroup(GDTrain, fwd, 5.3, 100);
 DTrain.stop(brake);
-wait(860, msec);
+wait(121, msec);
+speedForGroup(Left, fwd, 0, 0, false);
+speedForGroup(Right, reverse, 0, 0);
+speedForGroup(Left, fwd, 0.0133, -40, false);
+speedForGroup(Right, reverse, 0.0133, -40);
+speedForGroup(Left, fwd, 0.00556, -70, false);
+speedForGroup(Right, reverse, 0.00556, -70);
+speedForGroup(Left, fwd, -0.0272, -100, false);
+speedForGroup(Right, reverse, -0.0272, -100);
+speedForGroup(Left, fwd, -0.00111, -10, false);
+speedForGroup(Right, reverse, -0.00111, -10);
+DTrain.stop(brake);
+wait(114, msec);
+speedForGroup(GDTrain, fwd, 0, 40);
+speedForGroup(GDTrain, fwd, 0.00111, 20);
+speedForGroup(GDTrain, fwd, 0.000556, 40);
+speedForGroup(GDTrain, fwd, 0.00778, 50);
+speedForGroup(GDTrain, fwd, 2.42, 100);
+speedForGroup(GDTrain, fwd, 0.0778, 90);
+DTrain.stop(brake);
+wait(194, msec);
+speedForGroup(Left, fwd, 0, -10, false);
+speedForGroup(Right, reverse, 0, -10);
+speedForGroup(Left, fwd, 0.00778, 20, false);
+speedForGroup(Right, reverse, 0.00778, 20);
+speedForGroup(Left, fwd, 0.00556, 30, false);
+speedForGroup(Right, reverse, 0.00556, 30);
+speedForGroup(Left, fwd, 0, 80, false);
+speedForGroup(Right, reverse, 0, 80);
+speedForGroup(Left, fwd, -0.0483, 100, false);
+speedForGroup(Right, reverse, -0.0483, 100);
+DTrain.stop(brake);
+wait(64, msec);
+speedForGroup(GDTrain, fwd, 0, 60);
+speedForGroup(GDTrain, fwd, -0.005, 10);
+speedForGroup(GDTrain, fwd, 0.00111, 20);
+speedForGroup(GDTrain, fwd, 0, 60);
+speedForGroup(GDTrain, fwd, 1.75, 100);
+DTrain.stop(brake);
+wait(371, msec);
+speedForGroup(Left, fwd, 0, 100, false);
+speedForGroup(Right, reverse, 0, 100);
+speedForGroup(Left, fwd, -0.00167, 40, false);
+speedForGroup(Right, reverse, -0.00167, 40);
+speedForGroup(Left, fwd, -0.00167, 70, false);
+speedForGroup(Right, reverse, -0.00167, 70);
+speedForGroup(Left, fwd, -0.000556, 90, false);
+speedForGroup(Right, reverse, -0.000556, 90);
+speedForGroup(Left, fwd, 0.00667, 100, false);
+speedForGroup(Right, reverse, 0.00667, 100);
+speedForGroup(Left, fwd, 0.00556, 50, false);
+speedForGroup(Right, reverse, 0.00556, 50);
+DTrain.stop(brake);
+wait(149, msec);
+speedForGroup(Left, fwd, 0, 50, false);
+speedForGroup(Right, reverse, 0, 50);
+speedForGroup(Left, fwd, 0, 20, false);
+speedForGroup(Right, reverse, 0, 20);
+speedForGroup(Left, fwd, 0, 60, false);
+speedForGroup(Right, reverse, 0, 60);
+speedForGroup(Left, fwd, 0, 90, false);
+speedForGroup(Right, reverse, 0, 90);
+speedForGroup(Left, fwd, -0.00389, 100, false);
+speedForGroup(Right, reverse, -0.00389, 100);
+DTrain.stop(brake);
+wait(212, msec);
+speedForGroup(Left, fwd, 0, 100, false);
+speedForGroup(Right, reverse, 0, 100);
+speedForGroup(Left, fwd, 0, 10, false);
+speedForGroup(Right, reverse, 0, 10);
+speedForGroup(Left, fwd, 0, 40, false);
+speedForGroup(Right, reverse, 0, 40);
+speedForGroup(Left, fwd, 0.000556, 60, false);
+speedForGroup(Right, reverse, 0.000556, 60);
+speedForGroup(Left, fwd, 0.00111, 70, false);
+speedForGroup(Right, reverse, 0.00111, 70);
+DTrain.stop(brake);
+wait(220, msec);
 speedForGroup(GDTrain, fwd, 0, 50);
-speedForGroup(GDTrain, fwd, -0.678, -40);
-speedForGroup(GDTrain, fwd, -0.676, -50);
-speedForGroup(GDTrain, fwd, -0.0256, -70);
-speedForGroup(GDTrain, fwd, -0.0328, -90);
-speedForGroup(GDTrain, fwd, -1.66, -100);
-speedForGroup(GDTrain, fwd, -0.0861, -90);
-speedForGroup(GDTrain, fwd, -0.085, -80);
-speedForGroup(GDTrain, fwd, -0.0428, -70);
-speedForGroup(GDTrain, fwd, -0.161, -60);
-speedForGroup(GDTrain, fwd, -0.202, -50);
-speedForGroup(GDTrain, fwd, -0.26, -40);
-speedForGroup(GDTrain, fwd, -0.0539, -30);
-speedForGroup(GDTrain, fwd, -0.312, -20);
-speedForGroup(GDTrain, fwd, -0.00944, -10);
-speedForGroup(GDTrain, fwd, -0.0167, -20);
-speedForGroup(GDTrain, fwd, -0.0478, -10);
-speedForGroup(GDTrain, fwd, -0.0167, -20);
-DTrain.stop(brake);
-wait(639, msec);
-speedForGroup(GDTrain, fwd, -0.106, -10);
-DTrain.stop(brake);
-wait(1095, msec);
-speedForGroup(GDTrain, fwd, 0, -20);
-speedForGroup(GDTrain, fwd, -0.085, -10);
-DTrain.stop(brake);
-wait(450, msec);
-speedForGroup(GDTrain, fwd, 0, -20);
 speedForGroup(GDTrain, fwd, 0, -10);
-speedForGroup(GDTrain, fwd, 0, -20);
-speedForGroup(GDTrain, fwd, -0.0139, -30);
+speedForGroup(GDTrain, fwd, -0.000556, -20);
+speedForGroup(GDTrain, fwd, -0.628, -30);
+speedForGroup(GDTrain, fwd, -0.0122, -20);
+speedForGroup(GDTrain, fwd, -0.286, -30);
 DTrain.stop(brake);
 }
 
@@ -232,6 +301,7 @@ int main() {
   vexcodeInit();
   Competition.drivercontrol(driver);
   Competition.autonomous(auton);
+  Inertial.calibrate();
   while(1){
     double stickTest = floor(Controller.Axis3.position()/10)*10;
     Brain.Screen.printAt(20, 20, "Stick Value: %f", stickTest);

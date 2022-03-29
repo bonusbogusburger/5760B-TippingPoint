@@ -516,13 +516,13 @@ void driver(){
   LeftClamp.close();
   while(1){
     //drivetrain brake
-     if(CurDrive.ButtonLeft.pressing()){
-      DTrain.stop(hold);
+    if(CurDrive.ButtonLeft.pressing()){
+      DTrain.stop(brake);
     }
     else{
     //drivetrain (tank)
-    Left.spin(fwd, CurDrive.Axis3.position()*shift, pct);
-    Right.spin(fwd, CurDrive.Axis2.position()*shift, pct);
+      Left.spin(fwd, CurDrive.Axis3.position()*shift, pct);
+      Right.spin(fwd, CurDrive.Axis2.position()*shift, pct);
     }
 
     if(CurDrive.ButtonL1.pressing()){
