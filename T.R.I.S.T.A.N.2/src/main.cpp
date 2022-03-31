@@ -193,21 +193,35 @@ int dstick1gyro(){ //turning at a set speed using gyro
   std::cout << "DTrain.stop(brake);" << std::endl;
   return 1;
 }
-int dstick1gpsgyro(){ //turning at a set speed using gps heading
+int dstick1gyro2(){ //turning at a set speed using gyro
   std::cout << "wait(" << stopTimer << ", msec);" << std::endl;
+  double igyro = Inertial.heading();
   stopTimer = 0;
   int turnmult;
   while(Controller.Axis1.position() <= -50){
-    DTrain.turn(left, 25, velocityUnits::pct);
+    DTrain.turn(left, 50, velocityUnits::pct);
     turnmult = -1;
   }
   while(Controller.Axis1.position() >= 50){
-    DTrain.turn(right, 25, velocityUnits::pct);
+    DTrain.turn(right, 50, velocityUnits::pct);
     turnmult = 1;
   }
-  std::cout << "DTrain.turn(right, 25*" << turnmult << ", velocityUnits::pct);" << std::endl;
-  std::cout << "waitUntil(" << round(GPS.heading())-1 << " < GPS.heading() && GPS.heading() < " << round(GPS.heading()) << ");" << std::endl;
-  std::cout << "DTrain.stop(brake);" << std::endl;
+  if(Inertial.heading() > igyro){
+    if(Inertial.heading() >= 355){
+      std::cout << "DTrain.turn(right, 50, velocityUnits::pct);" << std::endl;
+      std::cout << "waitUntil(Inertial.heading() >= 0" << std::endl;
+    }
+    std::cout << "DTrain.turn(right, 50, velocityUnits::pct);" << std::endl;
+    std::cout << "waitUntil(Inertial.heading() >= " << Inertial.heading() << ");" << std::endl;
+  }
+  else if(Inertial.heading() > igyro){
+    if(Inertial.heading() <= 5){
+      std::cout << "DTrain.turn(left, 50, velocityUnits::pct);" << std::endl;
+      std::cout << "waitUntil(Inertial.heading() <= 360);" << std::endl;
+    }
+    std::cout << "DTrain.turn(left, 50, velocityUnits::pct);" << std::endl;
+    std::cout << "waitUntil(Inertial.heading() <= " << Inertial.heading() << ");" << std::endl;
+  }
   return 1;
 }
 int dstick1rev(){ //turning at a set speed using rotations
@@ -241,7 +255,7 @@ void driver(){
       stick3rev();
     }
     else if(fabs(stickTest1) >= 50){
-      dstick1rev();
+      dstick1gyro2();
     }
     else{
       wait(1, msec);
@@ -253,6 +267,52 @@ void driver(){
 }
 
 void auton(){
+wait(2, sec);
+wait(0, msec);
+speedForGroup(GDTrain, fwd, 0, 0);
+speedForGroup(GDTrain, fwd, 5.88889, 100);
+DTrain.stop(brake);
+wait(312, msec);
+wait(193, msec);
+DTrain.turn(right, 50, velocityUnits::pct);
+waitUntil(Inertial.heading() >= 159.64);
+wait(282, msec);
+speedForGroup(GDTrain, fwd, 0, 0);
+speedForGroup(GDTrain, fwd, 0, 10);
+speedForGroup(GDTrain, fwd, 0.00111111, 60);
+speedForGroup(GDTrain, fwd, 5.47722, 100);
+speedForGroup(GDTrain, fwd, 0.118889, 80);
+speedForGroup(GDTrain, fwd, 0.0827778, 70);
+speedForGroup(GDTrain, fwd, 0.0738889, 60);
+speedForGroup(GDTrain, fwd, 0.075, 50);
+DTrain.stop(brake);
+wait(1366, msec);
+wait(115, msec);
+wait(208, msec);
+DTrain.turn(right, 50, velocityUnits::pct);
+waitUntil(Inertial.heading() >= 0);
+DTrain.turn(right, 50, velocityUnits::pct);
+waitUntil(Inertial.heading() >= 356.047);
+wait(213, msec);
+wait(212, msec);
+speedForGroup(GDTrain, fwd, 0, 0);
+speedForGroup(GDTrain, fwd, 0, -10);
+speedForGroup(GDTrain, fwd, 0, -20);
+speedForGroup(GDTrain, fwd, -0.000555556, -30);
+speedForGroup(GDTrain, fwd, -0.0472222, -40);
+speedForGroup(GDTrain, fwd, -0.0155556, -30);
+DTrain.stop(brake);
+wait(172, msec);
+speedForGroup(GDTrain, fwd, 0, 0);
+speedForGroup(GDTrain, fwd, 0, -10);
+speedForGroup(GDTrain, fwd, -0.0477778, -20);
+DTrain.stop(brake);
+wait(128, msec);
+speedForGroup(GDTrain, fwd, 0, 0);
+speedForGroup(GDTrain, fwd, 0, -10);
+speedForGroup(GDTrain, fwd, -0.0277778, -40);
+speedForGroup(GDTrain, fwd, -0.0172222, -30);
+DTrain.stop(brake);
 }
 
 int main() {
