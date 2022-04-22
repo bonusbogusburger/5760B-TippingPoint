@@ -20,6 +20,7 @@ using namespace vex;
 
 competition Competition;
 controller Cont1;
+brain Brain;
 
 //Ports are currently placeholders
 //Drive Motors (Drive Left/Right 1-3)
@@ -39,7 +40,7 @@ motor IL(PORT1);
 
 //Sensors
 gps GPS(PORT9);
-optical Optical(PORT10);
+optical Optical(PORT6);
 vex::distance Distance(PORT11); //damn you iostream
 //potV2 Pot1();
 
@@ -47,9 +48,9 @@ vex::distance Distance(PORT11); //damn you iostream
 triport Expander1(PORT6);
 
 //Pneumatics
-//pneumatics Clamp();
-//pneumatics ILift();
-//pneumatics Trans();
+pneumatics Clamp(Brain.ThreeWirePort.B);
+pneumatics ILift(Brain.ThreeWirePort.C);
+pneumatics Trans(Brain.ThreeWirePort.D);
 
 //ooo shiny
 led Green1(Expander1.A);
@@ -235,29 +236,21 @@ void weaver(){
   manual.interrupt();
   cntmode = 1;
   }
-  wait(3, sec);
+  wait(0.25, sec);
   }
 }
 
-void auton(){ //Testing out driving w/ voltage
-  DL1.spinFor(1, sec, 50, velocityUnits::pct);
-  DL2.spinFor(1, sec, 50, velocityUnits::pct);
-  DL3.spinFor(1, sec, 50, velocityUnits::pct);
-  DR1.spinFor(1, sec, 50, velocityUnits::pct);
-  DR2.spinFor(1, sec, 50, velocityUnits::pct);
-  DR3.spinFor(1, sec, 50, velocityUnits::pct);
-  CL.spinFor(1, sec, 50, velocityUnits::pct);
-  CL.spinFor(1, sec, -50, velocityUnits::pct);
-  IL.spinFor(1, sec, 50, velocityUnits::pct);
-  IL.spinFor(1, sec, -50, velocityUnits::pct);
-  DT.stop(brake);
+void auton(){ 
+  Clamp.open();
+  wait(50, msec);
+  motorsping(DL, 75);
+  motorsping(DR, 75);
+  waitUntil(Optical.brightness() < 2);
+  Clamp.close();
+  wait(50, msec);
+  motorsping(DL, -50);
+  motorsping(DR, -50);
   wait(1, sec);
-  motorsping(DL, 30);
-  motorsping(DR, 30);
-  wait(2, sec);
-  motorsping(DL, 30, "pct", reverse);
-  motorsping(DR, 30, "pct", reverse);
-  wait(2, sec);
   DT.stop(brake);
 }
 
@@ -292,17 +285,33 @@ void driver(){
     else{
       IL.stop(hold);
     }
+
+    if(Cont1.ButtonY.pressing()){
+      Clamp.close();
+    }
+    else{
+      Clamp.open();
+    }
+
+    if(Cont1.ButtonRight.pressing()){
+      Trans.close();
+    }
+    else{
+      Trans.open();
+    }
   }
 }
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
+  Clamp.open();
   Competition.autonomous(auton);
   Competition.drivercontrol(driver);
   thread ooshiny(oooShiny);
   ooshiny.detach();
   while(1){
     Brain.Screen.printAt(20, 20, "speedmod = %f", speedmod);
+    Brain.Screen.printAt(20, 40, "Optical Brightness: %f", Optical.brightness());
   }
 }

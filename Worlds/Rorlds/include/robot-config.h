@@ -1,6 +1,6 @@
 using namespace vex;
 
-extern brain Brain;
+//extern brain Brain;
 
 // VEXcode devices
 
