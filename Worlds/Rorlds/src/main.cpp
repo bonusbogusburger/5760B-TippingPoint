@@ -38,19 +38,20 @@ drivetrain DT(DL, DR);
 motor CL(PORT4, true);
 motor IL(PORT1);
 
+//Expanders
+triport Expander1(PORT6);
+
 //Sensors
 gps GPS(PORT9);
 optical Optical(PORT6);
 vex::distance Distance(PORT11); //damn you iostream
-//potV2 Pot1();
-
-//Expanders
-triport Expander1(PORT6);
+potV2 Pot1(Expander1.G);
 
 //Pneumatics
 pneumatics Clamp(Brain.ThreeWirePort.B);
 pneumatics ILift(Brain.ThreeWirePort.C);
-pneumatics Trans(Brain.ThreeWirePort.D);
+pneumatics TransL(Brain.ThreeWirePort.D);
+pneumatics TransR(Brain.ThreeWirePort.E);
 
 //ooo shiny
 led Green1(Expander1.A);
@@ -60,7 +61,7 @@ led Yellow2(Expander1.D);
 led Red1(Expander1.E);
 led Red2(Expander1.F);
 
-void oooShiny(){
+void oooShiny(){ //haha funny led
   while(1){
     Green1.on();
     wait(50, msec);
@@ -101,7 +102,8 @@ void oooShiny(){
   }
 }
 
-void motorspin(motor Motor, float value, string value_type = "pct", directionType direction = directionType::fwd){
+//motor spin function using voltage instead of pct or rpm that makes itself "easy" to use
+void vspin(motor Motor, float value, string value_type = "pct", directionType direction = directionType::fwd){
   //determines motor spin direction using positive and negative votlages
   int dv;
   if(direction == directionType::fwd){
@@ -125,7 +127,7 @@ void motorspin(motor Motor, float value, string value_type = "pct", directionTyp
 }
 
 //motor group spin function using voltage instead of pct or rpm that makes itself "easy" to use
-void motorsping(motor_group MotorGroup, float value, string value_type = "pct", directionType direction = directionType::fwd){
+void gvspin(motor_group MotorGroup, float value, string value_type = "pct", directionType direction = directionType::fwd){
   //determines motor spin direction using positive and negative votlages
   int dv;
   if(direction == directionType::fwd){
@@ -243,13 +245,15 @@ void weaver(){
 void auton(){ 
   Clamp.open();
   wait(50, msec);
-  motorsping(DL, 75);
-  motorsping(DR, 75);
+  gvspin(DL, 75);
+  gvspin(DR, 75);
   waitUntil(Optical.brightness() < 2);
   Clamp.close();
   wait(50, msec);
-  motorsping(DL, -50);
-  motorsping(DR, -50);
+  gvspin(CL, 50);
+  wait(0.2, sec);
+  gvspin(DL, -50);
+  gvspin(DR, -50);
   wait(1, sec);
   DT.stop(brake);
 }
@@ -259,28 +263,28 @@ void driver(){
   weave.detach();
   while(1){
     if(fabs((floor(Cont1.Axis3.position()/10)*10)) > 0 or fabs((floor(Cont1.Axis2.position()/10)*10)) > 0){
-      motorsping(DL, Cont1.Axis3.position()*speedmod);
-      motorsping(DR, Cont1.Axis2.position()*speedmod);
+      gvspin(DL, Cont1.Axis3.position()*speedmod);
+      gvspin(DR, Cont1.Axis2.position()*speedmod);
     }
     else{
       DT.stop(brake);
     }
 
     if(Cont1.ButtonB.pressing()){
-      motorspin(CL, 100);
+      vspin(CL, 100);
     }
     else if(Cont1.ButtonDown.pressing()){
-      motorspin(CL, -100);
+      vspin(CL, -100);
     }
     else{
       CL.stop(hold);
     }
 
     if(Cont1.ButtonR1.pressing()){
-      motorspin(IL, 100);
+      vspin(IL, 100);
     }
     else if(Cont1.ButtonL1.pressing()){
-      motorspin(IL, -100);
+      vspin(IL, -100);
     }
     else{
       IL.stop(hold);
@@ -293,11 +297,13 @@ void driver(){
       Clamp.open();
     }
 
-    if(Cont1.ButtonRight.pressing()){
-      Trans.close();
+    if(actuate == true){
+      TransL.open();
+      TransR.open();
     }
-    else{
-      Trans.open();
+    else if(actuate == false){
+      TransL.close();
+      TransR.close();
     }
   }
 }
