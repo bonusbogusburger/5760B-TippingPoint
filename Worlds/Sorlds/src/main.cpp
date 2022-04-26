@@ -42,10 +42,9 @@ motor IL(PORT1);
 triport Expander1(PORT6);
 
 //Sensors
-gps GPS(PORT9);
+gps GPS(PORT5);
 vex::distance Distance(PORT3);
 potV2 Pot1(Expander1.G);
-vision Vision(PORT22);
 
 //Pneumatics
 pneumatics Clamp(Brain.ThreeWirePort.B);
@@ -408,6 +407,7 @@ void driver(){
 }
 
 void auton(){
+  wait(1, sec);
   CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
   wait(50, msec);
@@ -417,11 +417,14 @@ void auton(){
   Clamp.close();
   wait(50, msec);
   CL.stop(hold);
-  TransL.open();
-  TransR.open();
-  gvspin(DL, -100);
-  gvspin(DR, -100);
-  wait(3, sec); //speed: 1.5
+  gvspin(DL, 50);
+  gvspin(DR, 50);
+  waitUntil(GPS.xPosition(inches) > 20);
+  DT.stop(brake);
+  wait(0.5, sec);
+  gvspin(DL, -50);
+  gvspin(DR, 50);
+  waitUntil(GPS.heading() < 91);
   DT.stop(brake);
 }
 
@@ -429,6 +432,7 @@ int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
   Clamp.open();
+  GPS.calibrate();
   TransL.close();
   TransR.close();
   Competition.autonomous(auton);
