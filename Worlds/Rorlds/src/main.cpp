@@ -19,7 +19,8 @@ using namespace std;
 using namespace vex;
 
 competition Competition;
-controller Cont1;
+controller Cont1(controllerType::primary);
+controller Cont2(controllerType::partner);
 brain Brain;
 
 //Ports are currently placeholders
@@ -43,9 +44,13 @@ triport Expander1(PORT6);
 
 //Sensors
 gps GPS(PORT9);
-vex::distance Distance(PORT3);
+vex::distance Distance1(PORT3);
+vex::distance Distance2(PORT20);
 potV2 Pot1(Expander1.G);
 vision Vision(PORT22);
+limit ILimit(Brain.ThreeWirePort.G);
+limit CLimit(Brain.ThreeWirePort.H);
+inertial Inertial1(PORT10);
 
 //Pneumatics
 pneumatics Clamp(Brain.ThreeWirePort.B);
@@ -60,6 +65,8 @@ led Yellow1(Expander1.B);
 //led Yellow2(Expander1.D);
 led Red1(Expander1.C);
 //led Red2(Expander1.F);
+
+smartdrive SDT=smartdrive(DL, DR, Inertial1, 319.19, 406.4, 241.29999999999998, mm, 1.666666666666667);
 
 /*void oooShiny(){ //haha funny led
   while(1){
@@ -153,32 +160,32 @@ void gvspin(motor_group MotorGroup, float value, string value_type = "pct", dire
 bool automatic = true;
 bool actuate = false;
 float speedmod = 1;
-float watts = 0;
+float curr = 0;
 void autoshifter(){
   while(1){
-    watts = (DR.power()+DL.power())/2;
-    if(watts < 1.5*3){
+    curr = (DR.current()+DL.current())/2;
+    if(curr < 0.25){
       speedmod = 1;
       actuate = false;
       Green1.on();
       Yellow1.off();
       Red1.off();
     }
-    else if(watts<3.5*3){
+    else if(curr<0.5){
       speedmod = 0.5;
       actuate = false;
       Green1.off();
       Yellow1.on();
       Red1.off();
     }
-    else if(watts<3.5*3){
+    else if(curr<1){
       speedmod = 1;
       actuate = true;
       Green1.off();
       Yellow1.off();
       Red1.on();
     }
-    else if(watts<4*3){
+    else if(curr<2.51){
       speedmod = 0.5;
       actuate = true;
       Green1.on();
@@ -277,7 +284,7 @@ void manualshifter(){
 void transToggle(){
   actuate = false;
   while(1){
-    if(Cont1.ButtonRight.pressing()){
+    if(Cont1.ButtonRight.pressing() or Cont2.ButtonR2.pressing()){
       actuate = !actuate;
       wait(0.5, sec);
     }
@@ -290,9 +297,9 @@ void weaver(){
   //sense forchanges and record them
   int mode = 1;
   int cntmode = 1;
-  vex::thread autoshift(autoshift2);
+  vex::thread autoshift(autoshifter);
   autoshift.detach();
-  vex::thread manual(transToggle);
+  vex::thread manual(manualshifter);
     manual.detach();
     autoshift.interrupt();
   while(1){
@@ -324,7 +331,7 @@ bool bactuate;
 void backToggle(){
   bactuate = false;
   while(1){
-    if(Cont1.ButtonR2.pressing()){
+    if(Cont1.ButtonR1.pressing() or Cont2.ButtonR1.pressing()){
       bactuate = !bactuate;
       wait(0.5, sec);
     }
@@ -334,11 +341,24 @@ void backToggle(){
 
 bool cactuate;
 void clampToggle(){
-  cactuate = true;
+  cactuate = false;
+  bool disdanc = false;
   while(1){
-    if(Cont1.ButtonY.pressing()){
+    if(Cont1.ButtonR2.pressing()){
+      if(disdanc == true){
+        cactuate = false;
+        disdanc = false;
+      }
+      else if(disdanc == false){
         cactuate = !cactuate;
-      wait(0.5, sec);
+      }
+      waitUntil(Cont1.ButtonR2.pressing() == false);
+      wait(0.3, sec);
+    }
+    else if(Distance1.objectDistance(mm) < 25){
+      cactuate = true;
+      disdanc = true;
+      wait(0.1, sec);
     }
     wait(5, msec);
   }
@@ -355,38 +375,38 @@ void driver(){
   ctoggle.detach();
   while(1){
     if(fabs((floor(Cont1.Axis3.position()/10)*10)) > 0 or fabs((floor(Cont1.Axis2.position()/10)*10)) > 0){
-      gvspin(DL, Cont1.Axis3.position()*speedmod);
-      gvspin(DR, Cont1.Axis2.position()*speedmod);
+      gvspin(DL, Cont1.Axis3.position());
+      gvspin(DR, Cont1.Axis2.position());
     }
     else{
       DT.stop(brake);
     }
 
-    if(Cont1.ButtonB.pressing()){
+    if(Cont1.ButtonB.pressing() or floor(Cont2.Axis3.position()/10)*10 > 50 or floor(Cont2.Axis2.position()/10)*10 > 50){
       vspin(CL, 100);
     }
-    else if(Cont1.ButtonDown.pressing()){
+    else if(Cont1.ButtonDown.pressing() or floor(Cont2.Axis3.position()/10)*10 < -50 or floor(Cont2.Axis2.position()/10)*10 < -50){
       vspin(CL, -100);
     }
     else{
       CL.stop(hold);
     }
 
-    if(Cont1.ButtonR1.pressing()){
-      vspin(IL, 75);
+    if(Cont1.ButtonL2.pressing() or Cont2.ButtonL2.pressing()){
+      vspin(IL, 100);
     }
-    else if(Cont1.ButtonL1.pressing()){
-      vspin(IL, -75);
+    else if(Cont1.ButtonL1.pressing() or Cont2.ButtonL1.pressing()){
+      vspin(IL, -100);
     }
     else{
       IL.stop(hold);
     }
 
     if(cactuate == true){
-      Clamp.open();
+      Clamp.close();
     }
     else if(cactuate == false){
-      Clamp.close();
+      Clamp.open();
     }
 
     if(actuate == true){
@@ -407,21 +427,46 @@ void driver(){
   }
 }
 
+void tugboat(){
+  while(Distance2.objectDistance(mm) > 250){
+    gvspin(DL, -100);
+    gvspin(DR, -100);
+    cout << "DL Current:" << DL.current()/3 << endl;
+    cout << "DR Current:" << DR.current()/3 << endl;
+    wait(0.3,sec);
+    if((DL.current()/3 > 1.35 or DR.current()/3 > 1.35)){
+      TransL.open();
+      TransR.open();
+    }
+  }
+}
+
+void dtvspin(double speed){
+  gvspin(DL, speed);
+  gvspin(DR, speed);
+}
+
 void auton(){
   CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
   wait(50, msec);
-  gvspin(DL, 100);
-  gvspin(DR, 100);
-  waitUntil(Distance.objectDistance(mm) < 25);
+  dtvspin(100);
+  waitUntil(Distance1.objectDistance(mm) < 25 or Distance2.objectDistance(mm) > 2099);
   Clamp.close();
   wait(50, msec);
-  CL.stop(hold);
   TransL.open();
   TransR.open();
-  gvspin(DL, -100);
-  gvspin(DR, -100);
-  wait(3, sec); //speed: 1.5
+  CL.stop(hold);
+  dtvspin(-100);
+  waitUntil(Distance2.objectDistance(mm) < 815);
+  DT.stop(brake);
+  wait(50, msec);
+  SDT.turnToHeading(270, degrees, 50, velocityUnits::pct);
+  Clamp.open();
+  vspin(IL, -100);
+  wait(2, sec);
+  dtvspin(80);
+  wait(2, sec);
   DT.stop(brake);
 }
 
@@ -431,6 +476,7 @@ int main() {
   Clamp.open();
   TransL.close();
   TransR.close();
+  Inertial1.calibrate();
   Competition.autonomous(auton);
   Competition.drivercontrol(driver);
   while(1){
@@ -444,13 +490,11 @@ int main() {
     Brain.Screen.printAt(20, 100, "DR1 Temp: %f", DR1.temperature(celsius));
     Brain.Screen.printAt(20, 120, "DR2 Temp: %f", DR2.temperature(celsius));
     Brain.Screen.printAt(20, 140, "DR3 Temp: %f", DR3.temperature(celsius));
-    Brain.Screen.printAt(20, 160, "watts: %f", watts);
-    Brain.Screen.printAt(20, 180, "Distance: %f mm", Distance.objectDistance(mm));
+    Brain.Screen.printAt(20, 160, "curr = %f", curr);
+    Brain.Screen.printAt(20, 180, "Distance: %f mm", Distance1.objectDistance(mm));
     Brain.Screen.setFont(propXXL);
     Brain.Screen.setFillColor(red);
     Brain.Screen.setPenColor(black);
     Brain.Screen.printAt(280, 105, "5760B");
-    cout << "counter = " << counter << endl;
-    //cout << "L1 Velocity = " << DL1.velocity(pct) << endl;
   }
 }
