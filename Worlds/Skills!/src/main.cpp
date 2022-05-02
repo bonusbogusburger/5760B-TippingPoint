@@ -50,8 +50,8 @@ vex::distance Distance1(PORT5);
 vex::distance Distance2(PORT20);
 potV2 Pot1(Expander1.G);
 vision Vision(PORT22);
-limit ILimit(Brain.ThreeWirePort.G);
-limit CLimit(Brain.ThreeWirePort.H);
+limit ILimit(Brain.ThreeWirePort.H);
+limit CLimit(Brain.ThreeWirePort.C);
 inertial Inertial1(PORT10);
 inertial Inertial2(PORT6);
 
@@ -437,7 +437,7 @@ void driver(){
     if(Cont1.ButtonB.pressing() and CLimit.pressing() == false){
       vspin(CL, 100);
     }
-    else if(Cont1.ButtonDown.pressing()){
+    else if(Cont1.ButtonDown.pressing() and ILimit.pressing() == false){
       vspin(CL, -100);
     }
     else{
@@ -567,9 +567,9 @@ void auton(){
   SDT.turnToHeading(180, degrees, 50, velocityUnits::pct);
   DT.stop(brake);
   dtvspin(40);
-  waitUntil(Distance1.objectDistance(mm) < 23);
-  DT.stop(brake);
+  waitUntil(Distance1.objectDistance(mm) < 25);
   Clamp.close();
+  DT.stop(brake);
   CL.spinFor(fwd, 0.1, rev, false);
   desiredValue = Inertial1.heading();
   PIDstraight(-100);
@@ -592,7 +592,7 @@ void auton(){
   Clamp.close();
   DT.stop(brake);
   wait(50, msec);
-  SDT.driveFor(reverse, 24, inches, 75, velocityUnits::pct);
+  SDT.driveFor(reverse, 30, inches, 75, velocityUnits::pct);
   SDT.stop(brake);
   wait(50, msec);
   SDT.turnToHeading(90, degrees, 50, velocityUnits::pct);

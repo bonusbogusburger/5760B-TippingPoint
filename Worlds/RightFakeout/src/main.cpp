@@ -39,8 +39,8 @@ motor_group DR(DR1, DR2, DR3);
 drivetrain DT(DL, DR);
 
 //Clamp Lift + Intake Lift
-motor CL(PORT8, ratio36_1, true);
-motor IL(PORT1, ratio36_1);
+motor CL(PORT8, true);
+motor IL(PORT1);
 
 //Expanders
 triport Expander1(PORT6);
@@ -276,10 +276,11 @@ void PIDstraight(double speed){ //uses a P system to keep the robot straight whi
 void auton(){
   CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
-  wait(50, msec);
+  SDT.setTurnConstant(1.15);
+  SDT.turnToHeading(330, degrees, 65, velocityUnits::pct);
   desiredValue = Inertial1.heading();
   PIDstraight(100);
-  waitUntil(Distance1.objectDistance(mm) < 25 or Distance2.objectDistance(mm) > 2025);
+  waitUntil(Distance1.objectDistance(mm) < 25);
   Clamp.close();
   desiredValue = Inertial1.heading();
   wait(50, msec);
@@ -287,30 +288,8 @@ void auton(){
   TransR.open();
   CL.stop(hold);
   PIDstraight(-100);
-  waitUntil(Distance2.objectDistance(mm) < 775);
+  waitUntil(Distance2.objectDistance(mm) < 793);
   DT.stop(brake);
-  wait(50, msec);
-  SDT.setTurnConstant(55);
-  SDT.turnToHeading(271, degrees, 65, velocityUnits::pct);
-  DT.driveFor(fwd, 20, inches, 75, velocityUnits::pct, false);
-  vspin(IL, 100);
-  wait(2, sec);
-  TransL.close();
-  TransR.close();
-  wait(50, msec);
-  dtvspin(-80);
-  wait(2.2, sec);
-  DT.stop(brake);
-  vspin(IL, -100);
-  wait(0.5, sec);
-  dtvspin(27.5);
-  wait(2.5, sec);
-  IL.stop(brake);
-  DT.stop(brake);
-  ILift.open();
-  wait(0.3, sec);
-  vspin(IL, 100);
-  wait(10, sec);
 }
 
 int main() {
