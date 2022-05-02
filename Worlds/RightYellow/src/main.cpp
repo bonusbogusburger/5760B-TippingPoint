@@ -26,14 +26,13 @@ controller Cont1(controllerType::primary);
 controller Cont2(controllerType::partner);
 brain Brain;
 
-//Ports are currently placeholders
 //Drive Motors (Drive Left/Right 1-3)
-motor DL1(PORT15, true);
-motor DL2(PORT16, false);
-motor DL3(PORT19, true);
-motor DR1(PORT11, false);
-motor DR2(PORT12, true);
-motor DR3(PORT13, false);
+motor DL1(PORT15, ratio18_1, true);
+motor DL2(PORT16, ratio18_1, false);
+motor DL3(PORT19, ratio18_1, true);
+motor DR1(PORT11, ratio18_1, false);
+motor DR2(PORT12, ratio18_1, true);
+motor DR3(PORT13, ratio18_1, false);
 motor_group DL(DL1, DL2, DL3);
 motor_group DR(DR1, DR2, DR3);
 drivetrain DT(DL, DR);
@@ -51,6 +50,7 @@ vex::distance Distance1(PORT5);
 vex::distance Distance2(PORT20);
 potV2 Pot1(Expander1.G);
 vision Vision(PORT22);
+limit ILimit(Brain.ThreeWirePort.H);
 limit CLimit(Brain.ThreeWirePort.C);
 inertial Inertial1(PORT10);
 inertial Inertial2(PORT6);
@@ -208,7 +208,7 @@ void driver(){
     if(Cont1.ButtonB.pressing() and CLimit.pressing() == false){
       vspin(CL, 100);
     }
-    else if(Cont1.ButtonDown.pressing()){
+    else if(Cont1.ButtonDown.pressing() and ILimit.pressing() == false){
       vspin(CL, -100);
     }
     else{
