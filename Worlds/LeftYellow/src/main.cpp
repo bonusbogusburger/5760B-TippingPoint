@@ -121,7 +121,7 @@ bool actuate;
 void transToggle(){ //manually toggles transmission
   actuate = false;
   while(1){
-    if(Cont1.ButtonRight.pressing() or Cont2.ButtonR2.pressing()){
+    if((Cont1.ButtonRight.pressing() or Cont1.ButtonY.pressing()) or Cont2.ButtonR2.pressing()){
       actuate = !actuate;
       wait(0.5, sec);
     }

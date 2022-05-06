@@ -12,7 +12,7 @@
 // [Name]               [Type]        [Port(s)]
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
-//If there's a ~ in front of this program's name, it means it's ready for competition
+//If there's a ~ in front of this program's name, it means it's ready for competition (if it doesn't, it can still be used)
 //Skills code contains any unused functions that have been taken out of this code
 #include "vex.h"
 #include <iostream>
@@ -121,7 +121,7 @@ bool actuate;
 void transToggle(){ //manually toggles transmission
   actuate = false;
   while(1){
-    if(Cont1.ButtonRight.pressing() or Cont2.ButtonR2.pressing()){
+    if((Cont1.ButtonRight.pressing() or Cont1.ButtonY.pressing()) or Cont2.ButtonR2.pressing()){ //I BROKE ONE OF THE BUMPERS ON THE CONTROLLER AAAAAA I AM SO UPSET -Cole
       actuate = !actuate;
       wait(0.5, sec);
     }

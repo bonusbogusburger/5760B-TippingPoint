@@ -68,6 +68,9 @@ led Yellow1(Expander1.B);
 led Red1(Expander1.C);
 //led Red2(Expander1.F);
 
+//Timer
+timer Time;
+
 smartdrive SDT=smartdrive(DL, DR, Inertial1, 319.19, 406.4, 241.29999999999998, mm, 1.666666666666667);
 bool autofunctions = true;
 
@@ -284,10 +287,10 @@ void manualshifter(){
   }
 }
 
-void transToggle(){
+void transToggle(){ //manually toggles transmission
   actuate = false;
   while(1){
-    if(Cont1.ButtonRight.pressing() or Cont2.ButtonR2.pressing()){
+    if((Cont1.ButtonRight.pressing() or Cont1.ButtonY.pressing()) or Cont2.ButtonR2.pressing()){
       actuate = !actuate;
       wait(0.5, sec);
     }
@@ -544,12 +547,14 @@ void PIDstraight(double speed){
   this_thread::sleep_for(30);
 }
 
+
 void auton(){
   CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
   wait(50, msec);
+  Time.clear();
   dtvspin(40);
-  waitUntil(Distance1.objectDistance(mm) < 23);
+  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) == 2);
   Clamp.close();
   DT.stop(brake);
   dtvspin(-40);
@@ -565,8 +570,9 @@ void auton(){
   Clamp.open();
   SDT.turnToHeading(180, degrees, 50, velocityUnits::pct);
   DT.stop(brake);
+  Time.clear();
   dtvspin(40);
-  waitUntil(Distance1.objectDistance(mm) < 25);
+  waitUntil(Distance1.objectDistance(mm) < 25 or Time.time(sec) == 3);
   Clamp.close();
   DT.stop(brake);
   CL.spinFor(fwd, 0.1, rev, false);
@@ -586,8 +592,9 @@ void auton(){
   DT.stop(brake);
   wait(50, msec);
   desiredValue = Inertial1.heading();
+  Time.clear();
   PIDstraight(75);
-  waitUntil(Distance1.objectDistance(mm) < 23);
+  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) == 6);
   Clamp.close();
   DT.stop(brake);
   wait(50, msec);
