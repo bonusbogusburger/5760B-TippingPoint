@@ -37,7 +37,7 @@ motor_group DR(DR1, DR2, DR3);
 drivetrain DT(DL, DR);
 
 //Clamp Lift + Intake Lift
-motor CL(PORT8, ratio36_1, true);
+motor CL(PORT9, ratio36_1, true);
 motor IL(PORT1, ratio36_1);
 
 //Expanders
@@ -414,6 +414,7 @@ void autotoggle(){
 thread at(autotoggle);
 
 void driver(){
+  Clamp.open();
   //thread weave(weaver);
   thread manual(transToggle);
   thread btoggle(backToggle);
@@ -443,7 +444,7 @@ void driver(){
       vspin(CL, -100);
     }
     else{
-      CL.stop(hold);
+      CL.stop(brake);
     }
 
     if(Cont1.ButtonL1.pressing() or Cont2.ButtonL1.pressing()){
@@ -454,7 +455,7 @@ void driver(){
       vspin(IL, 100);
     }
     else{
-      IL.stop(hold);
+      IL.stop(brake);
     }
 
     if(cactuate == true){
@@ -485,7 +486,7 @@ void driver(){
 void dropIL(){
   vspin(IL, 75);
   waitUntil(ILimit.pressing());
-  IL.stop(hold);
+  IL.stop(brake);
 }
 thread ILdrop(dropIL);
 
@@ -551,10 +552,11 @@ void PIDstraight(double speed){
 void auton(){
   CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
+  wait(0.275, sec);
   wait(50, msec);
   Time.clear();
   dtvspin(40);
-  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) == 2);
+  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) > 2);
   Clamp.close();
   DT.stop(brake);
   dtvspin(-40);
@@ -572,7 +574,7 @@ void auton(){
   DT.stop(brake);
   Time.clear();
   dtvspin(40);
-  waitUntil(Distance1.objectDistance(mm) < 25 or Time.time(sec) == 3);
+  waitUntil(Distance1.objectDistance(mm) < 25 or Time.time(sec) > 3);
   Clamp.close();
   DT.stop(brake);
   CL.spinFor(fwd, 0.1, rev, false);
@@ -594,7 +596,7 @@ void auton(){
   desiredValue = Inertial1.heading();
   Time.clear();
   PIDstraight(75);
-  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) == 6);
+  waitUntil(Distance1.objectDistance(mm) < 23 or Time.time(sec) > 7);
   Clamp.close();
   DT.stop(brake);
   wait(50, msec);
@@ -613,7 +615,7 @@ void auton(){
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  Clamp.open();
+  Clamp.close();
   TransL.close();
   TransR.close();
   Inertial1.calibrate();

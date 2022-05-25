@@ -38,7 +38,7 @@ motor_group DR(DR1, DR2, DR3);
 drivetrain DT(DL, DR);
 
 //Clamp Lift + Intake Lift
-motor CL(PORT8, ratio36_1, true);
+motor CL(PORT9, ratio36_1, true);
 motor IL(PORT1, ratio36_1);
 
 //Expanders
@@ -65,6 +65,9 @@ pneumatics TransR(Brain.ThreeWirePort.A);
 led Green1(Expander1.A);
 led Yellow1(Expander1.B);
 led Red1(Expander1.C);
+
+//Timer
+timer Time;
 
 smartdrive SDT=smartdrive(DL, DR, Inertial1, 319.19, 406.4, 241.29999999999998, mm, 1.666666666666667);
 bool autofunctions = true;
@@ -147,13 +150,7 @@ void clampToggle(){ //toggles the front clamp
   bool disdanc = false;
   while(1){
     if(Cont1.ButtonR2.pressing()){
-      if(disdanc == true){
-        cactuate = false;
-        disdanc = false;
-      }
-      else if(disdanc == false){
-        cactuate = !cactuate;
-      }
+      cactuate = !cactuate;
       waitUntil(Cont1.ButtonR2.pressing() == false);
       wait(0.3, sec);
     }
@@ -212,7 +209,7 @@ void driver(){
       vspin(CL, -100);
     }
     else{
-      CL.stop(hold);
+      CL.stop(brake);
     }
 
     if(Cont1.ButtonL1.pressing() or Cont2.ButtonL1.pressing()){
@@ -223,13 +220,13 @@ void driver(){
       vspin(IL, 100);
     }
     else{
-      IL.stop(hold);
+      IL.stop(brake);
     }
 
-    if(cactuate == true){
+    if(cactuate == false){
       Clamp.close();
     }
-    else if(cactuate == false){
+    else if(cactuate == true){
       Clamp.open();
     }
 
@@ -274,28 +271,30 @@ void PIDstraight(double speed){ //uses a P system to keep the robot straight whi
 }
 
 void auton(){
-  CL.spinFor(reverse, 1, rev, false);
+  /*CL.spinFor(reverse, 1, rev, false);
   Clamp.open();
   SDT.setTurnConstant(1.15);
-  SDT.turnToHeading(330, degrees, 65, velocityUnits::pct);
+  SDT.turnToHeading(335, degrees, 65, velocityUnits::pct);
   desiredValue = Inertial1.heading();
-  PIDstraight(100);
-  waitUntil(Distance1.objectDistance(mm) < 25);
+  Time.clear();
+  dtvspin(100);
+  wait(0.15, sec);
+  waitUntil(Distance1.objectDistance(mm) < 25 or Time.value() > 1.6);
   Clamp.close();
   desiredValue = Inertial1.heading();
   wait(50, msec);
   TransL.open();
   TransR.open();
-  CL.stop(hold);
+  CL.stop(brake);
   PIDstraight(-100);
   waitUntil(Distance2.objectDistance(mm) < 793);
-  DT.stop(brake);
+  DT.stop(brake);*/
 }
 
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  Clamp.open();
+  Clamp.close();
   TransL.close();
   TransR.close();
   Inertial1.calibrate();
